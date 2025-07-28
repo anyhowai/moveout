@@ -1,0 +1,32 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Next.js
+.next/
+out/
+dist/
+.vercel/
+
+# Local env
+.env
+.env.local
+.env.*.local
+
+# Firebase
+.firebase/
+firestore-debug.log
+firebase-debug.log
+.storage/
+
+# MacOS
+.DS_Store
+
+# Logs
+logs
+*.log
+
+# Coverage
+coverage/
