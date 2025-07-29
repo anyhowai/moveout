@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/contexts/auth-context'
-import { Item } from '@/lib/types'
+import { Item, ItemStatus } from '@/lib/types'
 
 interface MessageModalProps {
   isOpen: boolean
@@ -14,6 +14,7 @@ export default function MessageModal({ isOpen, onClose, item }: MessageModalProp
   const { user } = useAuth()
   const [message, setMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [requestPickup, setRequestPickup] = useState(false)
 
   if (!isOpen) return null
 
@@ -24,7 +25,8 @@ export default function MessageModal({ isOpen, onClose, item }: MessageModalProp
 
     setIsLoading(true)
     try {
-      const response = await fetch('/api/messages', {
+      // Send the message
+      const messageResponse = await fetch('/api/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -37,15 +39,32 @@ export default function MessageModal({ isOpen, onClose, item }: MessageModalProp
         }),
       })
 
-      if (response.ok) {
-        alert('Message sent successfully!')
-        setMessage('')
-        onClose()
-      } else {
-        const error = await response.json()
-        console.error('Error sending message:', error)
-        alert('Failed to send message. Please try again.')
+      if (!messageResponse.ok) {
+        throw new Error('Failed to send message')
       }
+
+      // If pickup is requested and item is available, update status to pending
+      if (requestPickup && item.status === ItemStatus.AVAILABLE) {
+        const statusResponse = await fetch(`/api/items/${item.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            status: ItemStatus.PENDING,
+            currentUserId: user.uid,
+          }),
+        })
+
+        if (!statusResponse.ok) {
+          console.error('Failed to update item status, but message was sent')
+        }
+      }
+
+      alert('Message sent successfully!')
+      setMessage('')
+      setRequestPickup(false)
+      onClose()
     } catch (error) {
       console.error('Error sending message:', error)
       alert('Failed to send message. Please try again.')
@@ -99,6 +118,21 @@ export default function MessageModal({ isOpen, onClose, item }: MessageModalProp
                 required
               />
             </div>
+
+            {item.status === ItemStatus.AVAILABLE && (
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="requestPickup"
+                  checked={requestPickup}
+                  onChange={(e) => setRequestPickup(e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="requestPickup" className="ml-2 block text-sm text-gray-900">
+                  Request pickup (mark item as pending)
+                </label>
+              </div>
+            )}
 
             <div className="flex justify-end space-x-3">
               <button

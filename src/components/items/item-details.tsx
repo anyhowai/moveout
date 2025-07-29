@@ -1,9 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import { Item, UrgencyLevel } from '@/lib/types'
+import { useState, useEffect } from 'react'
+import { Item, UrgencyLevel, ItemStatus } from '@/lib/types'
 import { formatDate } from '@/lib/utils'
+import { useAuth } from '@/contexts/auth-context'
 import ContactButton from '@/components/messages/contact-button'
+import StatusBadge from '@/components/ui/status-badge'
+import StatusSelector from '@/components/ui/status-selector'
 
 interface ItemDetailsProps {
   item: Item
@@ -12,6 +15,17 @@ interface ItemDetailsProps {
 }
 
 export default function ItemDetails({ item, isOpen, onClose }: ItemDetailsProps) {
+  const { user } = useAuth()
+  const [currentItem, setCurrentItem] = useState(item)
+
+  // Update item when prop changes
+  useEffect(() => {
+    setCurrentItem(item)
+  }, [item])
+
+  const handleStatusChange = (newStatus: ItemStatus) => {
+    setCurrentItem(prev => ({ ...prev, status: newStatus, isAvailable: newStatus === ItemStatus.AVAILABLE }))
+  }
   const getUrgencyColor = (urgency: UrgencyLevel): string => {
     switch (urgency) {
       case UrgencyLevel.URGENT:
@@ -39,7 +53,7 @@ export default function ItemDetails({ item, isOpen, onClose }: ItemDetailsProps)
   }
 
   const handleGetDirections = () => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(item.address)}`
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(currentItem.address)}`
     window.open(url, '_blank')
   }
 
@@ -69,11 +83,11 @@ export default function ItemDetails({ item, isOpen, onClose }: ItemDetailsProps)
         </div>
 
         <div className="p-6">
-          {item.imageUrl ? (
+          {currentItem.imageUrl ? (
             <div className="mb-6">
               <img
-                src={item.imageUrl}
-                alt={item.title}
+                src={currentItem.imageUrl}
+                alt={currentItem.title}
                 className="w-full h-64 object-cover rounded-lg"
               />
             </div>
@@ -87,18 +101,31 @@ export default function ItemDetails({ item, isOpen, onClose }: ItemDetailsProps)
 
           <div className="space-y-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">{item.title}</h1>
-              <span
-                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getUrgencyColor(item.urgency)}`}
-              >
-                {getUrgencyText(item.urgency)}
-              </span>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">{currentItem.title}</h1>
+              <div className="flex items-center space-x-3 mb-3">
+                <StatusBadge status={currentItem.status} />
+                <span
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getUrgencyColor(currentItem.urgency)}`}
+                >
+                  {getUrgencyText(currentItem.urgency)}
+                </span>
+              </div>
+              
+              {user?.uid === currentItem.ownerId && (
+                <StatusSelector
+                  itemId={currentItem.id}
+                  currentStatus={currentItem.status}
+                  ownerId={currentItem.ownerId}
+                  onStatusChange={handleStatusChange}
+                  className="mb-4"
+                />
+              )}
             </div>
 
-            {item.description && (
+            {currentItem.description && (
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
-                <p className="text-gray-700 leading-relaxed">{item.description}</p>
+                <p className="text-gray-700 leading-relaxed">{currentItem.description}</p>
               </div>
             )}
 
@@ -107,27 +134,21 @@ export default function ItemDetails({ item, isOpen, onClose }: ItemDetailsProps)
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <span className="text-sm font-medium text-gray-500">Category</span>
-                  <p className="text-gray-900 capitalize">{item.category}</p>
+                  <p className="text-gray-900 capitalize">{currentItem.category}</p>
                 </div>
                 <div>
                   <span className="text-sm font-medium text-gray-500">Posted</span>
-                  <p className="text-gray-900">{formatDate(item.createdAt)}</p>
+                  <p className="text-gray-900">{formatDate(currentItem.createdAt)}</p>
                 </div>
                 <div>
                   <span className="text-sm font-medium text-gray-500">Last Updated</span>
-                  <p className="text-gray-900">{formatDate(item.updatedAt)}</p>
+                  <p className="text-gray-900">{formatDate(currentItem.updatedAt)}</p>
                 </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-500">Status</span>
-                  <p className="text-gray-900">
-                    {item.isAvailable ? 'Available' : 'No longer available'}
-                  </p>
-                </div>
-                {item.pickupDeadline && (
+                {currentItem.pickupDeadline && (
                   <div className="md:col-span-2">
                     <span className="text-sm font-medium text-gray-500">Pickup Deadline</span>
                     <p className="text-amber-600 font-medium">
-                      ⏰ {formatDate(item.pickupDeadline)}
+                      ⏰ {formatDate(currentItem.pickupDeadline)}
                     </p>
                   </div>
                 )}
@@ -139,9 +160,9 @@ export default function ItemDetails({ item, isOpen, onClose }: ItemDetailsProps)
               <div className="flex items-start">
                 <span className="inline-block w-5 h-5 mr-2 mt-0.5 text-gray-500">📍</span>
                 <div>
-                  <p className="text-gray-900">{item.address}</p>
+                  <p className="text-gray-900">{currentItem.address}</p>
                   <p className="text-sm text-gray-500">
-                    {item.coordinates.lat.toFixed(6)}, {item.coordinates.lng.toFixed(6)}
+                    {currentItem.coordinates.lat.toFixed(6)}, {currentItem.coordinates.lng.toFixed(6)}
                   </p>
                 </div>
               </div>
@@ -152,30 +173,30 @@ export default function ItemDetails({ item, isOpen, onClose }: ItemDetailsProps)
               <div className="space-y-2">
                 <div>
                   <span className="text-sm font-medium text-gray-500">Name</span>
-                  <p className="text-gray-900">{item.contactInfo.name}</p>
+                  <p className="text-gray-900">{currentItem.contactInfo.name}</p>
                 </div>
-                {item.contactInfo.phone && (
+                {currentItem.contactInfo.phone && (
                   <div>
                     <span className="text-sm font-medium text-gray-500">Phone</span>
                     <p className="text-gray-900">
                       <a
-                        href={`tel:${item.contactInfo.phone}`}
+                        href={`tel:${currentItem.contactInfo.phone}`}
                         className="text-blue-600 hover:text-blue-800"
                       >
-                        {item.contactInfo.phone}
+                        {currentItem.contactInfo.phone}
                       </a>
                     </p>
                   </div>
                 )}
-                {item.contactInfo.email && (
+                {currentItem.contactInfo.email && (
                   <div>
                     <span className="text-sm font-medium text-gray-500">Email</span>
                     <p className="text-gray-900">
                       <a
-                        href={`mailto:${item.contactInfo.email}`}
+                        href={`mailto:${currentItem.contactInfo.email}`}
                         className="text-blue-600 hover:text-blue-800"
                       >
-                        {item.contactInfo.email}
+                        {currentItem.contactInfo.email}
                       </a>
                     </p>
                   </div>
@@ -187,7 +208,7 @@ export default function ItemDetails({ item, isOpen, onClose }: ItemDetailsProps)
           <div className="mt-6 pt-6 border-t border-gray-200">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ContactButton
-                item={item}
+                item={currentItem}
                 className="w-full py-3 px-4 text-sm font-medium"
               />
               <button

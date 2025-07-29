@@ -2,6 +2,7 @@
 
 import { Item, UrgencyLevel } from '@/lib/types'
 import { formatDate } from '@/lib/utils'
+import StatusBadge from '@/components/ui/status-badge'
 
 interface ItemCardProps {
   item: Item
@@ -75,11 +76,14 @@ export default function ItemCard({ item, onClick, showDistance, distance }: Item
           <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
             {item.title}
           </h3>
-          <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getUrgencyColor(item.urgency)}`}
-          >
-            {getUrgencyText(item.urgency)}
-          </span>
+          <div className="flex flex-col items-end space-y-1">
+            <StatusBadge status={item.status} size="sm" />
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getUrgencyColor(item.urgency)}`}
+            >
+              {getUrgencyText(item.urgency)}
+            </span>
+          </div>
         </div>
 
         {item.description && (
@@ -109,6 +113,13 @@ export default function ItemCard({ item, onClick, showDistance, distance }: Item
             <span>Posted {formatDate(item.createdAt)}</span>
             <span>By {item.contactInfo.name}</span>
           </div>
+
+          {item.pickupDeadline && (
+            <div className="flex items-center text-sm text-amber-600 font-medium">
+              <span className="inline-block w-4 h-4 mr-2">⏰</span>
+              <span>Pickup by {formatDate(item.pickupDeadline)}</span>
+            </div>
+          )}
         </div>
 
         <div className="mt-4 pt-3 border-t border-gray-100">

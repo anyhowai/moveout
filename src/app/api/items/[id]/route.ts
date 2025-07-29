@@ -230,3 +230,69 @@ export async function DELETE(
     return NextResponse.json(response, { status: 500 })
   }
 }
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const body = await request.json()
+    const { status, currentUserId } = body
+
+    if (!currentUserId) {
+      const response: ApiResponse<never> = {
+        success: false,
+        error: 'User ID is required',
+      }
+      return NextResponse.json(response, { status: 400 })
+    }
+
+    // Verify the item exists and user owns it
+    const itemDoc = await getDoc(doc(db, 'items', params.id))
+    
+    if (!itemDoc.exists()) {
+      const response: ApiResponse<never> = {
+        success: false,
+        error: 'Item not found',
+      }
+      return NextResponse.json(response, { status: 404 })
+    }
+
+    const itemData = itemDoc.data()
+    if (itemData.ownerId !== currentUserId) {
+      const response: ApiResponse<never> = {
+        success: false,
+        error: 'Unauthorized - you can only update your own items',
+      }
+      return NextResponse.json(response, { status: 403 })
+    }
+
+    // Prepare update data
+    const updateData: any = {
+      updatedAt: serverTimestamp(),
+    }
+
+    // Add fields that are being updated
+    if (status !== undefined) {
+      updateData.status = status
+      updateData.isAvailable = status === 'available'
+    }
+
+    // Update the document
+    await updateDoc(doc(db, 'items', params.id), updateData)
+
+    const response: ApiResponse<{ id: string }> = {
+      success: true,
+      data: { id: params.id },
+    }
+
+    return NextResponse.json(response)
+  } catch (error) {
+    console.error('Error updating item status:', error)
+    const response: ApiResponse<never> = {
+      success: false,
+      error: 'Failed to update item status',
+    }
+    return NextResponse.json(response, { status: 500 })
+  }
+}

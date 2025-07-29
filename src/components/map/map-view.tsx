@@ -172,14 +172,35 @@ export default function MapView({ items, onMarkerClick }: MapViewProps) {
       ? new Date(item.pickupDeadline).toLocaleDateString() 
       : null
 
+    const getStatusBadge = (status: string) => {
+      const statusColors = {
+        available: 'bg-green-100 text-green-800 border-green-200',
+        pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        picked_up: 'bg-blue-100 text-blue-800 border-blue-200',
+        expired: 'bg-red-100 text-red-800 border-red-200'
+      }
+      const statusLabels = {
+        available: 'Available',
+        pending: 'Pickup Pending',
+        picked_up: 'Picked Up',
+        expired: 'Expired'
+      }
+      const colorClass = statusColors[status] || statusColors.available
+      const label = statusLabels[status] || 'Available'
+      return `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${colorClass}">${label}</span>`
+    }
+
     return `
       <div class="p-2 max-w-xs">
         <h3 class="font-semibold text-lg mb-1">${item.title}</h3>
-        ${item.description ? `<p class="text-sm text-gray-600 mb-2">${item.description}</p>` : ''}
-        <div class="flex items-center mb-2">
-          <span class="inline-block w-3 h-3 rounded-full mr-2" style="background-color: ${getUrgencyColor(item.urgency)}"></span>
-          <span class="text-sm capitalize">${item.urgency} priority</span>
+        <div class="flex items-center space-x-2 mb-2">
+          ${getStatusBadge(item.status)}
+          <div class="flex items-center">
+            <span class="inline-block w-3 h-3 rounded-full mr-1" style="background-color: ${getUrgencyColor(item.urgency)}"></span>
+            <span class="text-xs capitalize">${item.urgency}</span>
+          </div>
         </div>
+        ${item.description ? `<p class="text-sm text-gray-600 mb-2">${item.description}</p>` : ''}
         ${pickupDeadline ? `<p class="text-xs text-amber-600 mb-2">⏰ Pickup by: ${pickupDeadline}</p>` : ''}
         <p class="text-xs text-gray-500 mb-3">${item.address}</p>
         <div class="flex space-x-2">

@@ -8,6 +8,7 @@ import SearchFilters from '@/components/ui/search-filters'
 import LoadingSpinner from '@/components/ui/loading-spinner'
 import ErrorMessage from '@/components/ui/error-message'
 import MessageModal from '@/components/messages/message-modal'
+import { useItemExpiration } from '@/hooks/use-item-expiration'
 import { Item, ItemCategory, UrgencyLevel } from '@/lib/types'
 
 export default function HomePage() {
@@ -22,6 +23,16 @@ export default function HomePage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<ItemCategory | 'all'>('all')
   const [selectedUrgency, setSelectedUrgency] = useState<UrgencyLevel | 'all'>('all')
+
+  // Set up item expiration checking
+  useItemExpiration({
+    enabled: true,
+    intervalMinutes: 5, // Check every 5 minutes
+    onItemsExpired: () => {
+      // Refresh the items list when items expire
+      fetchItems()
+    },
+  })
 
   useEffect(() => {
     fetchItems()
