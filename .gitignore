@@ -30,3 +30,24 @@ logs
 
 # Coverage
 coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# IDE/Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+
+# Claude IDE settings
+.claude/
+
+# Temporary files
+*.tmp
+*.temp

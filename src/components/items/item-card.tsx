@@ -1,0 +1,125 @@
+'use client'
+
+import { Item, UrgencyLevel } from '@/lib/types'
+import { formatDate } from '@/lib/utils'
+
+interface ItemCardProps {
+  item: Item
+  onClick?: () => void
+  showDistance?: boolean
+  distance?: string
+}
+
+export default function ItemCard({ item, onClick, showDistance, distance }: ItemCardProps) {
+  const getUrgencyColor = (urgency: UrgencyLevel): string => {
+    switch (urgency) {
+      case UrgencyLevel.URGENT:
+        return 'bg-red-100 text-red-800 border-red-200'
+      case UrgencyLevel.MODERATE:
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      case UrgencyLevel.LOW:
+        return 'bg-green-100 text-green-800 border-green-200'
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200'
+    }
+  }
+
+  const getUrgencyText = (urgency: UrgencyLevel): string => {
+    switch (urgency) {
+      case UrgencyLevel.URGENT:
+        return 'Urgent'
+      case UrgencyLevel.MODERATE:
+        return 'Moderate'
+      case UrgencyLevel.LOW:
+        return 'Low Priority'
+      default:
+        return urgency
+    }
+  }
+
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick()
+    }
+  }
+
+  const handleGetDirections = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(item.address)}`
+    window.open(url, '_blank')
+  }
+
+  return (
+    <div
+      className={`bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden transition-all duration-200 hover:shadow-lg hover:border-gray-300 ${
+        onClick ? 'cursor-pointer' : ''
+      }`}
+      onClick={handleCardClick}
+    >
+      {item.imageUrl ? (
+        <div className="w-full h-48 bg-gray-200">
+          <img
+            src={item.imageUrl}
+            alt={item.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      ) : (
+        <div className="w-full h-48 bg-gray-100 flex items-center justify-center">
+          <div className="text-gray-400 text-4xl">📦</div>
+        </div>
+      )}
+      
+      <div className="p-4">
+        <div className="flex items-start justify-between mb-2">
+          <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
+            {item.title}
+          </h3>
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getUrgencyColor(item.urgency)}`}
+          >
+            {getUrgencyText(item.urgency)}
+          </span>
+        </div>
+
+        {item.description && (
+          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+            {item.description}
+          </p>
+        )}
+
+        <div className="space-y-2">
+          <div className="flex items-center text-sm text-gray-500">
+            <span className="inline-block w-4 h-4 mr-2">📍</span>
+            <span className="truncate">{item.address}</span>
+          </div>
+
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center text-gray-500">
+              <span className="inline-block w-4 h-4 mr-2">🏷️</span>
+              <span className="capitalize">{item.category}</span>
+            </div>
+            
+            {showDistance && distance && (
+              <span className="text-blue-600 font-medium">{distance}</span>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between text-sm text-gray-500">
+            <span>Posted {formatDate(item.createdAt)}</span>
+            <span>By {item.contactInfo.name}</span>
+          </div>
+        </div>
+
+        <div className="mt-4 pt-3 border-t border-gray-100">
+          <button
+            onClick={handleGetDirections}
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors duration-200"
+          >
+            Get Directions
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

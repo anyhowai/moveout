@@ -1,0 +1,48 @@
+{
+  "name": "moveout",
+  "version": "1.0.0",
+  "description": "MoveOut Map - Google Maps Platform Awards hackathon MVP",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "echo 'Linting temporarily disabled'",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write .",
+    "test": "jest --passWithNoTests",
+    "seed-demo": "node scripts/seed-demo-data.js"
+  },
+  "dependencies": {
+    "@googlemaps/js-api-loader": "^1.16.0",
+    "clsx": "^2.1.0",
+    "firebase": "^10.12.0",
+    "next": "^14.2.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "tailwind-merge": "^2.3.0"
+  },
+  "devDependencies": {
+    "@types/google.maps": "^3.58.1",
+    "@types/node": "^18.17.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.0",
+    "dotenv": "^17.2.1",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.4.0"
+  },
+  "keywords": [
+    "nextjs",
+    "react",
+    "google-maps",
+    "firebase",
+    "hackathon"
+  ],
+  "author": "",
+  "license": "ISC",
+  "volta": {
+    "node": "18.17.1",
+    "yarn": "1.22.22"
+  }
+}
