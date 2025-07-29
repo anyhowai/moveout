@@ -15,9 +15,18 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const category = searchParams.get('category')
     const urgency = searchParams.get('urgency')
+    const ownerId = searchParams.get('ownerId')
 
     // Build Firestore query
-    let q = query(collection(db, 'items'), where('isAvailable', '==', true))
+    let q = query(collection(db, 'items'))
+
+    // If filtering by owner, get all their items regardless of availability
+    if (ownerId) {
+      q = query(q, where('ownerId', '==', ownerId))
+    } else {
+      // For public view, only show available items
+      q = query(q, where('isAvailable', '==', true))
+    }
 
     if (category) {
       q = query(q, where('category', '==', category))
@@ -25,6 +34,9 @@ export async function GET(request: NextRequest) {
     if (urgency) {
       q = query(q, where('urgency', '==', urgency))
     }
+
+    // Add ordering
+    q = query(q, orderBy('createdAt', 'desc'))
 
     const querySnapshot = await getDocs(q)
     
@@ -48,12 +60,20 @@ export async function GET(request: NextRequest) {
       } catch (error) {
         updatedAt = new Date()
       }
+
+      let pickupDeadline: Date | undefined
+      try {
+        pickupDeadline = data.pickupDeadline?.toDate ? data.pickupDeadline.toDate() : undefined
+      } catch (error) {
+        pickupDeadline = undefined
+      }
       
       items.push({
         id: doc.id,
         ...data,
         createdAt,
         updatedAt,
+        pickupDeadline,
       } as Item)
     })
 

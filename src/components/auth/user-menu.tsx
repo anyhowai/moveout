@@ -92,7 +92,7 @@ export default function UserMenu() {
               className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
               onClick={() => setIsDropdownOpen(false)}
             >
-              My Dashboard
+              Dashboard
             </a>
             
             <a
