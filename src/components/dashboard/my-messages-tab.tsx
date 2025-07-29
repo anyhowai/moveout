@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { MessageThread, Message } from '@/lib/types'
+import { MessageThread, Message, Item } from '@/lib/types'
 import LoadingSpinner from '@/components/ui/loading-spinner'
 import ErrorMessage from '@/components/ui/error-message'
 import MessageThreadList from '@/components/messages/message-thread-list'
@@ -15,6 +15,7 @@ export default function MyMessagesTab({ userId }: MyMessagesTabProps) {
   const [threads, setThreads] = useState<MessageThread[]>([])
   const [selectedThread, setSelectedThread] = useState<MessageThread | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
+  const [currentItem, setCurrentItem] = useState<Item | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -25,6 +26,7 @@ export default function MyMessagesTab({ userId }: MyMessagesTabProps) {
   useEffect(() => {
     if (selectedThread) {
       fetchMessages(selectedThread.id)
+      fetchItem(selectedThread.itemId)
     }
   }, [selectedThread])
 
@@ -78,6 +80,22 @@ export default function MyMessagesTab({ userId }: MyMessagesTabProps) {
     } catch (error) {
       console.error('Error fetching messages:', error)
       // Don't set error state for individual message loading
+    }
+  }
+
+  const fetchItem = async (itemId: string) => {
+    try {
+      const response = await fetch(`/api/items/${itemId}`)
+      
+      if (response.ok) {
+        const result = await response.json()
+        if (result.success) {
+          setCurrentItem(result.data)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching item:', error)
+      // Don't set error state for individual item loading
     }
   }
 
@@ -202,6 +220,7 @@ export default function MyMessagesTab({ userId }: MyMessagesTabProps) {
                 thread={selectedThread}
                 messages={messages}
                 currentUserId={userId}
+                item={currentItem || undefined}
                 onSendMessage={handleSendMessage}
               />
             ) : (

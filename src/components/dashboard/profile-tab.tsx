@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { User } from '@/lib/types'
 import { formatDate } from '@/lib/utils'
 import LoadingSpinner from '@/components/ui/loading-spinner'
+import UserReputationBadge from '@/components/ratings/user-reputation-badge'
 
 interface ProfileTabProps {
   user: User
@@ -105,6 +106,9 @@ export default function ProfileTab({ user }: ProfileTabProps) {
           <p className="text-sm text-gray-500">
             Member since {formatDate(stats.memberSince)}
           </p>
+          <div className="mt-3">
+            <UserReputationBadge userId={user.id} size="lg" showDetails={true} />
+          </div>
         </div>
       </div>
 

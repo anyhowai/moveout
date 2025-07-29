@@ -1,13 +1,16 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { MessageThread, Message } from '@/lib/types'
+import { MessageThread, Message, Item } from '@/lib/types'
 import { formatDate } from '@/lib/utils'
+import RatingPrompt from '@/components/ratings/rating-prompt'
+import RatingModal from '@/components/ratings/rating-modal'
 
 interface MessageChatProps {
   thread: MessageThread
   messages: Message[]
   currentUserId: string
+  item?: Item
   onSendMessage: (content: string) => Promise<void>
 }
 
@@ -15,10 +18,12 @@ export default function MessageChat({
   thread,
   messages,
   currentUserId,
+  item,
   onSendMessage,
 }: MessageChatProps) {
   const [newMessage, setNewMessage] = useState('')
   const [isSending, setIsSending] = useState(false)
+  const [showRatingModal, setShowRatingModal] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -97,6 +102,18 @@ export default function MessageChat({
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Rating Prompt for completed pickups */}
+      {item && (
+        <div className="px-4">
+          <RatingPrompt
+            item={item}
+            otherUserId={otherUserId}
+            otherUserName={item.contactInfo.name}
+            onRatingClick={() => setShowRatingModal(true)}
+          />
+        </div>
+      )}
+
       {/* Message Input */}
       <div className="p-4 border-t border-gray-200 bg-gray-50">
         <form onSubmit={handleSubmit} className="flex space-x-2">
@@ -117,6 +134,21 @@ export default function MessageChat({
           </button>
         </form>
       </div>
+
+      {/* Rating Modal */}
+      {item && showRatingModal && (
+        <RatingModal
+          isOpen={showRatingModal}
+          onClose={() => setShowRatingModal(false)}
+          item={item}
+          ratedUserId={otherUserId}
+          ratedUserName={item.contactInfo.name}
+          onRatingSubmitted={() => {
+            setShowRatingModal(false)
+            // Optionally refresh the component or show a success message
+          }}
+        />
+      )}
     </div>
   )
 }

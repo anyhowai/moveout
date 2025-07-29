@@ -115,3 +115,86 @@ export interface MessageThread {
     [userId: string]: number
   }
 }
+
+export interface Rating {
+  id: string
+  itemId: string
+  raterId: string
+  ratedUserId: string
+  rating: number // 1-5 stars
+  review?: string
+  createdAt: Date
+  pickupExperience: PickupExperience
+}
+
+export enum PickupExperience {
+  EXCELLENT = 'excellent',
+  GOOD = 'good',
+  FAIR = 'fair',
+  POOR = 'poor'
+}
+
+export interface UserReputation {
+  userId: string
+  averageRating: number
+  totalRatings: number
+  ratingBreakdown: {
+    5: number
+    4: number
+    3: number
+    2: number
+    1: number
+  }
+  completedPickups: number
+  joinedDate: Date
+  lastUpdated: Date
+}
+
+export interface CreateRatingRequest {
+  itemId: string
+  ratedUserId: string
+  rating: number
+  review?: string
+  pickupExperience: PickupExperience
+}
+
+export interface Report {
+  id: string
+  reporterId: string
+  reportedItemId?: string
+  reportedUserId?: string
+  category: ReportCategory
+  reason: string
+  description?: string
+  status: ReportStatus
+  createdAt: Date
+  resolvedAt?: Date
+  resolvedBy?: string
+  moderatorNotes?: string
+}
+
+export enum ReportCategory {
+  SPAM = 'spam',
+  INAPPROPRIATE_CONTENT = 'inappropriate_content',
+  FRAUD = 'fraud',
+  HARASSMENT = 'harassment',
+  MISLEADING = 'misleading',
+  SAFETY_CONCERN = 'safety_concern',
+  COPYRIGHT = 'copyright',
+  OTHER = 'other'
+}
+
+export enum ReportStatus {
+  PENDING = 'pending',
+  UNDER_REVIEW = 'under_review',
+  RESOLVED = 'resolved',
+  DISMISSED = 'dismissed'
+}
+
+export interface CreateReportRequest {
+  reportedItemId?: string
+  reportedUserId?: string
+  category: ReportCategory
+  reason: string
+  description?: string
+}

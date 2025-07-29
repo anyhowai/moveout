@@ -4,6 +4,7 @@ import { Item, UrgencyLevel } from '@/lib/types'
 import { formatDate } from '@/lib/utils'
 import StatusBadge from '@/components/ui/status-badge'
 import FavoriteButton from '@/components/ui/favorite-button'
+import UserReputationBadge from '@/components/ratings/user-reputation-badge'
 
 interface ItemCardProps {
   item: Item & { distance?: { formatted: string } }
@@ -122,6 +123,10 @@ export default function ItemCard({ item, onClick, showDistance, distance }: Item
           <div className="flex items-center justify-between text-sm text-gray-500">
             <span>Posted {formatDate(item.createdAt)}</span>
             <span>By {item.contactInfo.name}</span>
+          </div>
+
+          <div className="mt-3">
+            <UserReputationBadge userId={item.ownerId} size="sm" />
           </div>
 
           {item.pickupDeadline && (
