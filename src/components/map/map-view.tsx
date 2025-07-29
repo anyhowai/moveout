@@ -167,7 +167,7 @@ export default function MapView({ items, onMarkerClick }: MapViewProps) {
     }
   }
 
-  const createInfoWindowContent = (item: Item): string => {
+  const createInfoWindowContent = (item: Item & { distance?: { formatted: string } }): string => {
     const pickupDeadline = item.pickupDeadline 
       ? new Date(item.pickupDeadline).toLocaleDateString() 
       : null
@@ -199,6 +199,7 @@ export default function MapView({ items, onMarkerClick }: MapViewProps) {
             <span class="inline-block w-3 h-3 rounded-full mr-1" style="background-color: ${getUrgencyColor(item.urgency)}"></span>
             <span class="text-xs capitalize">${item.urgency}</span>
           </div>
+          ${item.distance ? `<span class="text-xs text-blue-600 font-medium">${item.distance.formatted}</span>` : ''}
         </div>
         ${item.description ? `<p class="text-sm text-gray-600 mb-2">${item.description}</p>` : ''}
         ${pickupDeadline ? `<p class="text-xs text-amber-600 mb-2">⏰ Pickup by: ${pickupDeadline}</p>` : ''}
@@ -216,12 +217,19 @@ export default function MapView({ items, onMarkerClick }: MapViewProps) {
           >
             Contact
           </button>
+          <button 
+            onclick="window.toggleFavorite('${item.id}')"
+            class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+            title="Add to favorites"
+          >
+            ♥
+          </button>
         </div>
       </div>
     `
   }
 
-  // Add global functions for directions and contact
+  // Add global functions for directions, contact, and favorites
   useEffect(() => {
     ;(window as any).getDirections = (destination: string) => {
       const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`
@@ -233,6 +241,12 @@ export default function MapView({ items, onMarkerClick }: MapViewProps) {
       if (item && onMarkerClick) {
         onMarkerClick(item)
       }
+    }
+
+    ;(window as any).toggleFavorite = (itemId: string) => {
+      // This will be handled by a global context function
+      // For now, just trigger a custom event that the parent can listen to
+      window.dispatchEvent(new CustomEvent('toggleFavorite', { detail: itemId }))
     }
   }, [items, onMarkerClick])
 

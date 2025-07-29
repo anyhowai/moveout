@@ -7,9 +7,10 @@ import AuthModal from '@/components/auth/auth-modal'
 import LoadingSpinner from '@/components/ui/loading-spinner'
 import MyListingsTab from '@/components/dashboard/my-listings-tab'
 import MyMessagesTab from '@/components/dashboard/my-messages-tab'
+import MyFavoritesTab from '@/components/dashboard/my-favorites-tab'
 import ProfileTab from '@/components/dashboard/profile-tab'
 
-type DashboardTab = 'listings' | 'messages' | 'profile'
+type DashboardTab = 'listings' | 'messages' | 'favorites' | 'profile'
 
 export default function DashboardPage() {
   const { user, isLoading } = useAuth()
@@ -59,6 +60,7 @@ export default function DashboardPage() {
   const tabs = [
     { id: 'listings' as const, label: 'My Listings', icon: '📦' },
     { id: 'messages' as const, label: 'My Messages', icon: '💬' },
+    { id: 'favorites' as const, label: 'My Favorites', icon: '💝' },
     { id: 'profile' as const, label: 'Profile', icon: '👤' },
   ]
 
@@ -97,6 +99,7 @@ export default function DashboardPage() {
         <div className="p-6">
           {activeTab === 'listings' && <MyListingsTab userId={user.uid} />}
           {activeTab === 'messages' && <MyMessagesTab userId={user.uid} />}
+          {activeTab === 'favorites' && <MyFavoritesTab userId={user.uid} />}
           {activeTab === 'profile' && <ProfileTab user={user} />}
         </div>
       </div>

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import ErrorBoundary from '@/components/ui/error-boundary'
 import { AuthProvider } from '@/contexts/auth-context'
+import { FavoritesProvider } from '@/contexts/favorites-context'
 import UserMenu from '@/components/auth/user-menu'
 import '../styles/globals.css'
 
@@ -21,7 +22,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <div className="min-h-screen bg-gray-50">
+          <FavoritesProvider>
+            <div className="min-h-screen bg-gray-50">
             <header className="bg-white shadow-sm border-b">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
@@ -53,7 +55,8 @@ export default function RootLayout({
                 {children}
               </ErrorBoundary>
             </main>
-          </div>
+            </div>
+          </FavoritesProvider>
         </AuthProvider>
       </body>
     </html>

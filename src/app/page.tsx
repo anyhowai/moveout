@@ -9,6 +9,8 @@ import LoadingSpinner from '@/components/ui/loading-spinner'
 import ErrorMessage from '@/components/ui/error-message'
 import MessageModal from '@/components/messages/message-modal'
 import { useItemExpiration } from '@/hooks/use-item-expiration'
+import { useFavorites } from '@/contexts/favorites-context'
+import { filterItemsByDistance, type Coordinates } from '@/lib/geolocation-utils'
 import { Item, ItemCategory, UrgencyLevel } from '@/lib/types'
 
 export default function HomePage() {
@@ -23,6 +25,10 @@ export default function HomePage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<ItemCategory | 'all'>('all')
   const [selectedUrgency, setSelectedUrgency] = useState<UrgencyLevel | 'all'>('all')
+  const [selectedDistance, setSelectedDistance] = useState<number | null>(null)
+  const [userLocation, setUserLocation] = useState<Coordinates | null>(null)
+
+  const { addFavorite, removeFavorite, isFavorite } = useFavorites()
 
   // Set up item expiration checking
   useItemExpiration({
@@ -37,6 +43,24 @@ export default function HomePage() {
   useEffect(() => {
     fetchItems()
   }, [])
+
+  // Handle favorite toggle events from map info windows
+  useEffect(() => {
+    const handleToggleFavorite = async (event: Event) => {
+      const customEvent = event as CustomEvent
+      const itemId = customEvent.detail
+      if (isFavorite(itemId)) {
+        await removeFavorite(itemId)
+      } else {
+        await addFavorite(itemId)
+      }
+    }
+
+    window.addEventListener('toggleFavorite', handleToggleFavorite)
+    return () => {
+      window.removeEventListener('toggleFavorite', handleToggleFavorite)
+    }
+  }, [addFavorite, removeFavorite, isFavorite])
 
   const fetchItems = async () => {
     try {
@@ -66,7 +90,7 @@ export default function HomePage() {
 
   // Filter items based on search criteria
   const filteredItems = useMemo(() => {
-    return items.filter((item) => {
+    let filtered = items.filter((item) => {
       const matchesSearch = !searchTerm || 
         item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -77,7 +101,14 @@ export default function HomePage() {
       
       return matchesSearch && matchesCategory && matchesUrgency && item.isAvailable
     })
-  }, [items, searchTerm, selectedCategory, selectedUrgency])
+
+    // Apply distance filtering if location and distance are available
+    if (userLocation && selectedDistance) {
+      filtered = filterItemsByDistance(filtered, userLocation, selectedDistance)
+    }
+
+    return filtered
+  }, [items, searchTerm, selectedCategory, selectedUrgency, userLocation, selectedDistance])
 
   const handleItemClick = (item: Item) => {
     setSelectedItem(item)
@@ -147,6 +178,10 @@ export default function HomePage() {
         selectedUrgency={selectedUrgency}
         onUrgencyChange={setSelectedUrgency}
         itemCount={filteredItems.length}
+        onDistanceChange={setSelectedDistance}
+        onLocationChange={setUserLocation}
+        selectedDistance={selectedDistance}
+        showDistanceFilter={true}
       />
 
       <div className="mb-4">

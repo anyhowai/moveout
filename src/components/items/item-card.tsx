@@ -3,9 +3,10 @@
 import { Item, UrgencyLevel } from '@/lib/types'
 import { formatDate } from '@/lib/utils'
 import StatusBadge from '@/components/ui/status-badge'
+import FavoriteButton from '@/components/ui/favorite-button'
 
 interface ItemCardProps {
-  item: Item
+  item: Item & { distance?: { formatted: string } }
   onClick?: () => void
   showDistance?: boolean
   distance?: string
@@ -57,19 +58,26 @@ export default function ItemCard({ item, onClick, showDistance, distance }: Item
       }`}
       onClick={handleCardClick}
     >
-      {item.imageUrl ? (
-        <div className="w-full h-48 bg-gray-200">
-          <img
-            src={item.imageUrl}
-            alt={item.title}
-            className="w-full h-full object-cover"
-          />
+      <div className="relative">
+        {item.imageUrl ? (
+          <div className="w-full h-48 bg-gray-200">
+            <img
+              src={item.imageUrl}
+              alt={item.title}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        ) : (
+          <div className="w-full h-48 bg-gray-100 flex items-center justify-center">
+            <div className="text-gray-400 text-4xl">📦</div>
+          </div>
+        )}
+        
+        {/* Favorite button positioned in top-right corner */}
+        <div className="absolute top-3 right-3 bg-white bg-opacity-90 backdrop-blur-sm rounded-full p-1 shadow-sm">
+          <FavoriteButton itemId={item.id} size="sm" />
         </div>
-      ) : (
-        <div className="w-full h-48 bg-gray-100 flex items-center justify-center">
-          <div className="text-gray-400 text-4xl">📦</div>
-        </div>
-      )}
+      </div>
       
       <div className="p-4">
         <div className="flex items-start justify-between mb-2">
@@ -104,9 +112,11 @@ export default function ItemCard({ item, onClick, showDistance, distance }: Item
               <span className="capitalize">{item.category}</span>
             </div>
             
-            {showDistance && distance && (
-              <span className="text-blue-600 font-medium">{distance}</span>
-            )}
+            {(showDistance && distance) || item.distance ? (
+              <span className="text-blue-600 font-medium">
+                {item.distance?.formatted || distance}
+              </span>
+            ) : null}
           </div>
 
           <div className="flex items-center justify-between text-sm text-gray-500">

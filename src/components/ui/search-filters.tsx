@@ -1,6 +1,7 @@
 'use client'
 
 import { ItemCategory, UrgencyLevel } from '@/lib/types'
+import DistanceFilter from '@/components/ui/distance-filter'
 
 interface SearchFiltersProps {
   searchTerm: string
@@ -10,6 +11,10 @@ interface SearchFiltersProps {
   selectedUrgency: UrgencyLevel | 'all'
   onUrgencyChange: (urgency: UrgencyLevel | 'all') => void
   itemCount: number
+  onDistanceChange?: (distance: number | null) => void
+  onLocationChange?: (coordinates: { lat: number; lng: number } | null) => void
+  selectedDistance?: number | null
+  showDistanceFilter?: boolean
 }
 
 export default function SearchFilters({
@@ -20,6 +25,10 @@ export default function SearchFilters({
   selectedUrgency,
   onUrgencyChange,
   itemCount,
+  onDistanceChange,
+  onLocationChange,
+  selectedDistance,
+  showDistanceFilter = true,
 }: SearchFiltersProps) {
   const categories = [
     { value: 'all', label: 'All Categories' },
@@ -43,9 +52,12 @@ export default function SearchFilters({
     onSearchChange('')
     onCategoryChange('all')
     onUrgencyChange('all')
+    if (onDistanceChange) {
+      onDistanceChange(null)
+    }
   }
 
-  const hasActiveFilters = searchTerm || selectedCategory !== 'all' || selectedUrgency !== 'all'
+  const hasActiveFilters = searchTerm || selectedCategory !== 'all' || selectedUrgency !== 'all' || (selectedDistance !== null && selectedDistance !== undefined)
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
@@ -94,6 +106,15 @@ export default function SearchFilters({
             </select>
           </div>
 
+          {showDistanceFilter && onDistanceChange && onLocationChange && (
+            <div className="min-w-0 flex-1 sm:flex-none sm:w-64">
+              <DistanceFilter
+                onDistanceChange={onDistanceChange}
+                onLocationChange={onLocationChange}
+              />
+            </div>
+          )}
+
           {hasActiveFilters && (
             <button
               onClick={handleClearFilters}
@@ -128,6 +149,11 @@ export default function SearchFilters({
               {selectedUrgency !== 'all' && (
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
                   {urgencyLevels.find(u => u.value === selectedUrgency)?.label}
+                </span>
+              )}
+              {selectedDistance && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Within {selectedDistance} miles
                 </span>
               )}
             </div>
