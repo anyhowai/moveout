@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { collection, addDoc, getDocs, serverTimestamp, query, where, orderBy } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { db, storage } from '@/lib/firebase'
-import { Item, CreateItemRequest, ApiResponse } from '@/lib/types'
+import { db, storage, auth } from '@/lib/firebase'
+import { Item, CreateItemRequest, ApiResponse, ItemStatus } from '@/lib/types'
 import { geocodeAddress, generateId } from '@/lib/utils'
 
 export async function GET(request: NextRequest) {
@@ -85,14 +85,25 @@ export async function POST(request: NextRequest) {
     const contactName = formData.get('contactInfo.name') as string
     const contactPhone = formData.get('contactInfo.phone') as string
     const contactEmail = formData.get('contactInfo.email') as string
+    const pickupDeadlineStr = formData.get('pickupDeadline') as string
+    const ownerId = formData.get('ownerId') as string
     const image = formData.get('image') as File | null
 
-    if (!title || !category || !urgency || !address || !contactName) {
+    if (!title || !category || !urgency || !address || !contactName || !ownerId) {
       const response: ApiResponse<never> = {
         success: false,
         error: 'Missing required fields',
       }
       return NextResponse.json(response, { status: 400 })
+    }
+
+    // Parse pickup deadline if provided
+    let pickupDeadline: Date | undefined
+    if (pickupDeadlineStr && pickupDeadlineStr !== 'undefined') {
+      pickupDeadline = new Date(pickupDeadlineStr)
+      if (isNaN(pickupDeadline.getTime())) {
+        pickupDeadline = undefined
+      }
     }
 
     // Geocode the address
@@ -120,7 +131,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create the item document - only include imageUrl if it exists
+    // Create the item document - only include optional fields if they exist
     const itemData = {
       title,
       description: description || '',
@@ -133,10 +144,13 @@ export async function POST(request: NextRequest) {
         phone: contactPhone || '',
         email: contactEmail || '',
       },
+      ownerId,
+      status: ItemStatus.AVAILABLE,
       isAvailable: true,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       ...(imageUrl && { imageUrl }), // Only add imageUrl if it exists
+      ...(pickupDeadline && { pickupDeadline }), // Only add pickupDeadline if it exists
     }
 
     const docRef = await addDoc(collection(db, 'items'), itemData)

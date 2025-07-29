@@ -47,6 +47,7 @@ ehthumbs.db
 
 # Claude IDE settings
 .claude/
+CLAUDE.md
 
 # Temporary files
 *.tmp

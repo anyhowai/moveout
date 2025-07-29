@@ -21,6 +21,7 @@ export default function ItemForm({ onSubmit, isLoading = false }: ItemFormProps)
       phone: '',
       email: '',
     },
+    pickupDeadline: undefined,
   })
 
   const [imageFile, setImageFile] = useState<File | null>(null)
@@ -216,6 +217,27 @@ export default function ItemForm({ onSubmit, isLoading = false }: ItemFormProps)
             <option value={UrgencyLevel.URGENT}>Urgent - ASAP</option>
           </select>
         </div>
+      </div>
+
+      <div>
+        <label htmlFor="pickupDeadline" className="block text-sm font-medium text-gray-700 mb-2">
+          Pickup Deadline (Optional)
+        </label>
+        <input
+          type="datetime-local"
+          id="pickupDeadline"
+          name="pickupDeadline"
+          value={formData.pickupDeadline ? formData.pickupDeadline.toISOString().slice(0, 16) : ''}
+          onChange={(e) => {
+            const date = e.target.value ? new Date(e.target.value) : undefined
+            setFormData(prev => ({ ...prev, pickupDeadline: date }))
+          }}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+          min={new Date().toISOString().slice(0, 16)}
+        />
+        <p className="mt-1 text-sm text-gray-500">
+          When does this item need to be picked up by? Leave empty if flexible.
+        </p>
       </div>
 
       <div>

@@ -168,6 +168,10 @@ export default function MapView({ items, onMarkerClick }: MapViewProps) {
   }
 
   const createInfoWindowContent = (item: Item): string => {
+    const pickupDeadline = item.pickupDeadline 
+      ? new Date(item.pickupDeadline).toLocaleDateString() 
+      : null
+
     return `
       <div class="p-2 max-w-xs">
         <h3 class="font-semibold text-lg mb-1">${item.title}</h3>
@@ -176,24 +180,40 @@ export default function MapView({ items, onMarkerClick }: MapViewProps) {
           <span class="inline-block w-3 h-3 rounded-full mr-2" style="background-color: ${getUrgencyColor(item.urgency)}"></span>
           <span class="text-sm capitalize">${item.urgency} priority</span>
         </div>
-        <p class="text-xs text-gray-500 mb-2">${item.address}</p>
-        <button 
-          onclick="window.getDirections('${item.address}')"
-          class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
-        >
-          Get Directions
-        </button>
+        ${pickupDeadline ? `<p class="text-xs text-amber-600 mb-2">⏰ Pickup by: ${pickupDeadline}</p>` : ''}
+        <p class="text-xs text-gray-500 mb-3">${item.address}</p>
+        <div class="flex space-x-2">
+          <button 
+            onclick="window.getDirections('${item.address}')"
+            class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 flex-1"
+          >
+            Directions
+          </button>
+          <button 
+            onclick="window.contactOwner('${item.id}')"
+            class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 flex-1"
+          >
+            Contact
+          </button>
+        </div>
       </div>
     `
   }
 
-  // Add global function for directions
+  // Add global functions for directions and contact
   useEffect(() => {
     ;(window as any).getDirections = (destination: string) => {
       const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`
       window.open(url, '_blank')
     }
-  }, [])
+
+    ;(window as any).contactOwner = (itemId: string) => {
+      const item = items.find(i => i.id === itemId)
+      if (item && onMarkerClick) {
+        onMarkerClick(item)
+      }
+    }
+  }, [items, onMarkerClick])
 
   return (
     <div className="w-full h-full relative">

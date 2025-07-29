@@ -1,7 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import { Item, UrgencyLevel } from '@/lib/types'
 import { formatDate } from '@/lib/utils'
+import ContactButton from '@/components/messages/contact-button'
 
 interface ItemDetailsProps {
   item: Item
@@ -121,6 +123,14 @@ export default function ItemDetails({ item, isOpen, onClose }: ItemDetailsProps)
                     {item.isAvailable ? 'Available' : 'No longer available'}
                   </p>
                 </div>
+                {item.pickupDeadline && (
+                  <div className="md:col-span-2">
+                    <span className="text-sm font-medium text-gray-500">Pickup Deadline</span>
+                    <p className="text-amber-600 font-medium">
+                      ⏰ {formatDate(item.pickupDeadline)}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -175,12 +185,18 @@ export default function ItemDetails({ item, isOpen, onClose }: ItemDetailsProps)
           </div>
 
           <div className="mt-6 pt-6 border-t border-gray-200">
-            <button
-              onClick={handleGetDirections}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors duration-200"
-            >
-              Get Directions to This Item
-            </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <ContactButton
+                item={item}
+                className="w-full py-3 px-4 text-sm font-medium"
+              />
+              <button
+                onClick={handleGetDirections}
+                className="w-full bg-green-600 text-white py-3 px-4 rounded-md text-sm font-medium hover:bg-green-700 transition-colors duration-200"
+              >
+                Get Directions
+              </button>
+            </div>
           </div>
         </div>
       </div>

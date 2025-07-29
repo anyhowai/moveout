@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
+import { ref, deleteObject } from 'firebase/storage'
+import { db, storage } from '@/lib/firebase'
 import { Item, ApiResponse } from '@/lib/types'
 
 export async function GET(
@@ -37,11 +38,19 @@ export async function GET(
       updatedAt = new Date()
     }
     
+    let pickupDeadline: Date | undefined
+    try {
+      pickupDeadline = data.pickupDeadline?.toDate ? data.pickupDeadline.toDate() : undefined
+    } catch (error) {
+      pickupDeadline = undefined
+    }
+
     const item: Item = {
       id: docSnap.id,
       ...data,
       createdAt,
       updatedAt,
+      pickupDeadline,
     } as Item
 
     const response: ApiResponse<Item> = {
@@ -60,17 +69,28 @@ export async function GET(
   }
 }
 
-export async function PATCH(
+export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const body = await request.json()
-    const docRef = doc(db, 'items', params.id)
+    const formData = await request.formData()
+    
+    const title = formData.get('title') as string
+    const description = formData.get('description') as string
+    const category = formData.get('category') as string
+    const urgency = formData.get('urgency') as string
+    const address = formData.get('address') as string
+    const contactName = formData.get('contactInfo.name') as string
+    const contactPhone = formData.get('contactInfo.phone') as string
+    const contactEmail = formData.get('contactInfo.email') as string
+    const pickupDeadlineStr = formData.get('pickupDeadline') as string
+    const currentUserId = formData.get('currentUserId') as string
 
-    // Check if item exists
-    const docSnap = await getDoc(docRef)
-    if (!docSnap.exists()) {
+    // Verify the item exists and user owns it
+    const itemDoc = await getDoc(doc(db, 'items', params.id))
+    
+    if (!itemDoc.exists()) {
       const response: ApiResponse<never> = {
         success: false,
         error: 'Item not found',
@@ -78,11 +98,54 @@ export async function PATCH(
       return NextResponse.json(response, { status: 404 })
     }
 
-    // Update the item
-    await updateDoc(docRef, {
-      ...body,
-      updatedAt: new Date(),
-    })
+    const itemData = itemDoc.data()
+    if (itemData.ownerId !== currentUserId) {
+      const response: ApiResponse<never> = {
+        success: false,
+        error: 'Unauthorized - you can only edit your own items',
+      }
+      return NextResponse.json(response, { status: 403 })
+    }
+
+    if (!title || !category || !urgency || !address || !contactName) {
+      const response: ApiResponse<never> = {
+        success: false,
+        error: 'Missing required fields',
+      }
+      return NextResponse.json(response, { status: 400 })
+    }
+
+    // Parse pickup deadline if provided
+    let pickupDeadline: Date | undefined
+    if (pickupDeadlineStr && pickupDeadlineStr !== 'undefined') {
+      pickupDeadline = new Date(pickupDeadlineStr)
+      if (isNaN(pickupDeadline.getTime())) {
+        pickupDeadline = undefined
+      }
+    }
+
+    // Prepare update data
+    const updateData: any = {
+      title,
+      description: description || '',
+      category,
+      urgency,
+      address,
+      contactInfo: {
+        name: contactName,
+        phone: contactPhone || '',
+        email: contactEmail || '',
+      },
+      updatedAt: serverTimestamp(),
+    }
+
+    // Only add pickupDeadline if it exists
+    if (pickupDeadline) {
+      updateData.pickupDeadline = pickupDeadline
+    }
+
+    // Update the document
+    await updateDoc(doc(db, 'items', params.id), updateData)
 
     const response: ApiResponse<{ id: string }> = {
       success: true,
@@ -105,11 +168,21 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const docRef = doc(db, 'items', params.id)
+    const { searchParams } = new URL(request.url)
+    const currentUserId = searchParams.get('userId')
 
-    // Check if item exists
-    const docSnap = await getDoc(docRef)
-    if (!docSnap.exists()) {
+    if (!currentUserId) {
+      const response: ApiResponse<never> = {
+        success: false,
+        error: 'User ID is required',
+      }
+      return NextResponse.json(response, { status: 400 })
+    }
+
+    // Verify the item exists and user owns it
+    const itemDoc = await getDoc(doc(db, 'items', params.id))
+    
+    if (!itemDoc.exists()) {
       const response: ApiResponse<never> = {
         success: false,
         error: 'Item not found',
@@ -117,8 +190,30 @@ export async function DELETE(
       return NextResponse.json(response, { status: 404 })
     }
 
-    // Delete the item
-    await deleteDoc(docRef)
+    const itemData = itemDoc.data()
+    if (itemData.ownerId !== currentUserId) {
+      const response: ApiResponse<never> = {
+        success: false,
+        error: 'Unauthorized - you can only delete your own items',
+      }
+      return NextResponse.json(response, { status: 403 })
+    }
+
+    // Delete associated image if it exists
+    if (itemData.imageUrl) {
+      try {
+        // Create a reference to the image in storage
+        // Note: This assumes the image is stored with the item ID as the filename
+        const imageRef = ref(storage, `items/${params.id}`)
+        await deleteObject(imageRef)
+      } catch (error) {
+        console.error('Error deleting image:', error)
+        // Continue with item deletion even if image deletion fails
+      }
+    }
+
+    // Delete the item document
+    await deleteDoc(doc(db, 'items', params.id))
 
     const response: ApiResponse<{ id: string }> = {
       success: true,

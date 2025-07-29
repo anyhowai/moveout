@@ -7,6 +7,7 @@ import ItemDetails from '@/components/items/item-details'
 import SearchFilters from '@/components/ui/search-filters'
 import LoadingSpinner from '@/components/ui/loading-spinner'
 import ErrorMessage from '@/components/ui/error-message'
+import MessageModal from '@/components/messages/message-modal'
 import { Item, ItemCategory, UrgencyLevel } from '@/lib/types'
 
 export default function HomePage() {
@@ -15,6 +16,7 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map')
   const [selectedItem, setSelectedItem] = useState<Item | null>(null)
+  const [messageItem, setMessageItem] = useState<Item | null>(null)
   
   // Search and filter state
   const [searchTerm, setSearchTerm] = useState('')
@@ -68,6 +70,11 @@ export default function HomePage() {
 
   const handleItemClick = (item: Item) => {
     setSelectedItem(item)
+  }
+
+  const handleMapMarkerClick = (item: Item) => {
+    // For map clicks, we want to show the message modal directly
+    setMessageItem(item)
   }
 
   if (loading) {
@@ -159,7 +166,7 @@ export default function HomePage() {
       {viewMode === 'map' ? (
         <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
           <div className="h-96 lg:h-[600px]">
-            <MapView items={filteredItems} onMarkerClick={handleItemClick} />
+            <MapView items={filteredItems} onMarkerClick={handleMapMarkerClick} />
           </div>
         </div>
       ) : (
@@ -215,6 +222,14 @@ export default function HomePage() {
           item={selectedItem}
           isOpen={!!selectedItem}
           onClose={() => setSelectedItem(null)}
+        />
+      )}
+
+      {messageItem && (
+        <MessageModal
+          isOpen={!!messageItem}
+          onClose={() => setMessageItem(null)}
+          item={messageItem}
         />
       )}
     </div>

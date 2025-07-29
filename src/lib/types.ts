@@ -58,6 +58,7 @@ export interface CreateItemRequest {
     phone?: string
     email?: string
   }
+  pickupDeadline?: Date
 }
 
 export interface MapMarker {
@@ -77,4 +78,40 @@ export interface ApiResponse<T> {
   success: boolean
   data?: T
   error?: string
+}
+
+export interface User {
+  id: string
+  email: string
+  displayName: string
+  photoURL?: string
+  phone?: string
+  createdAt: Date
+  lastSeen: Date
+  rating?: number
+  completedPickups: number
+}
+
+export interface Message {
+  id: string
+  threadId: string
+  senderId: string
+  recipientId: string
+  content: string
+  createdAt: Date
+  isRead: boolean
+}
+
+export interface MessageThread {
+  id: string
+  itemId: string
+  itemTitle?: string
+  buyerId: string
+  sellerId: string
+  lastMessage: string
+  lastMessageAt: Date
+  createdAt: Date
+  unreadCount?: {
+    [userId: string]: number
+  }
 }
