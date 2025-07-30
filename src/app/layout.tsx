@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import ErrorBoundary from '@/components/ui/error-boundary'
+import OfflineBanner from '@/components/ui/offline-banner'
 import { AuthProvider } from '@/contexts/auth-context'
 import { FavoritesProvider } from '@/contexts/favorites-context'
 import UserMenu from '@/components/auth/user-menu'
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           <FavoritesProvider>
+            <OfflineBanner />
             <div className="min-h-screen bg-gray-50">
             <header className="bg-white shadow-sm border-b">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

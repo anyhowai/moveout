@@ -37,12 +37,12 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
 
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/favorites?userId=${user.uid}`)
+      const response = await fetch(`/api/favorites?userId=${user.id}`)
       
       if (response.ok) {
         const result = await response.json()
         if (result.success) {
-          const favoriteIds = new Set(result.data.map((fav: any) => fav.itemId))
+          const favoriteIds = new Set<string>(result.data.map((fav: any) => fav.itemId))
           setFavorites(favoriteIds)
         }
       }
@@ -68,7 +68,7 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: user.uid,
+          userId: user.id,
           itemId,
         }),
       })
@@ -101,7 +101,7 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
     setFavorites(newFavorites)
 
     try {
-      const response = await fetch(`/api/favorites?userId=${user.uid}&itemId=${itemId}`, {
+      const response = await fetch(`/api/favorites?userId=${user.id}&itemId=${itemId}`, {
         method: 'DELETE',
       })
 

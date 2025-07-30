@@ -22,7 +22,7 @@ export default function ContactButton({ item, className = '' }: ContactButtonPro
       return
     }
 
-    if (user.uid === item.ownerId) {
+    if (user.id === item.ownerId) {
       alert('You cannot message yourself!')
       return
     }

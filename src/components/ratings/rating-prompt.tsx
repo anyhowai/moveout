@@ -25,7 +25,7 @@ export default function RatingPrompt({
 
   useEffect(() => {
     checkIfRated()
-  }, [item.id, user?.uid])
+  }, [item.id, user?.id])
 
   const checkIfRated = async () => {
     if (!user) {
@@ -39,7 +39,7 @@ export default function RatingPrompt({
 
       if (result.success) {
         // Check if current user has already rated this item
-        const userRating = result.data?.find((rating: any) => rating.raterId === user.uid)
+        const userRating = result.data?.find((rating: any) => rating.raterId === user.id)
         setHasRated(!!userRating)
       }
     } catch (error) {

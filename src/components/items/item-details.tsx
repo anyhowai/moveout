@@ -111,7 +111,7 @@ export default function ItemDetails({ item, isOpen, onClose }: ItemDetailsProps)
                 </span>
               </div>
               
-              {user?.uid === currentItem.ownerId && (
+              {user?.id === currentItem.ownerId && (
                 <StatusSelector
                   itemId={currentItem.id}
                   currentStatus={currentItem.status}

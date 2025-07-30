@@ -36,7 +36,7 @@ export default function PostItemPage() {
       formData.append('contactInfo.name', data.contactInfo.name)
       formData.append('contactInfo.phone', data.contactInfo.phone || '')
       formData.append('contactInfo.email', data.contactInfo.email || '')
-      formData.append('ownerId', user.uid)
+      formData.append('ownerId', user.id)
       
       if (data.image) {
         formData.append('image', data.image)

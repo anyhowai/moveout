@@ -33,7 +33,7 @@ export default function MessageModal({ isOpen, onClose, item }: MessageModalProp
         },
         body: JSON.stringify({
           content: message,
-          senderId: user.uid,
+          senderId: user.id,
           recipientId: item.ownerId,
           itemId: item.id,
         }),
@@ -52,7 +52,7 @@ export default function MessageModal({ isOpen, onClose, item }: MessageModalProp
           },
           body: JSON.stringify({
             status: ItemStatus.PENDING,
-            currentUserId: user.uid,
+            currentUserId: user.id,
           }),
         })
 

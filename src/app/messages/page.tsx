@@ -39,7 +39,7 @@ export default function MessagesPage() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`/api/messages?userId=${user.uid}`)
+      const response = await fetch(`/api/messages?userId=${user.id}`)
       
       if (!response.ok) {
         throw new Error(`Failed to fetch threads: ${response.status}`)
@@ -64,7 +64,7 @@ export default function MessagesPage() {
     if (!user) return
 
     try {
-      const response = await fetch(`/api/messages?userId=${user.uid}&threadId=${threadId}`)
+      const response = await fetch(`/api/messages?userId=${user.id}&threadId=${threadId}`)
       
       if (!response.ok) {
         throw new Error(`Failed to fetch messages: ${response.status}`)
@@ -87,7 +87,7 @@ export default function MessagesPage() {
     if (!user || !selectedThread) return
 
     try {
-      const recipientId = selectedThread.buyerId === user.uid 
+      const recipientId = selectedThread.buyerId === user.id 
         ? selectedThread.sellerId 
         : selectedThread.buyerId
 
@@ -98,7 +98,7 @@ export default function MessagesPage() {
         },
         body: JSON.stringify({
           content,
-          senderId: user.uid,
+          senderId: user.id,
           recipientId,
           itemId: selectedThread.itemId,
           threadId: selectedThread.id,
@@ -179,7 +179,7 @@ export default function MessagesPage() {
             threads={threads}
             selectedThread={selectedThread}
             onThreadSelect={setSelectedThread}
-            currentUserId={user.uid}
+            currentUserId={user.id}
           />
         </div>
         
@@ -188,7 +188,7 @@ export default function MessagesPage() {
             <MessageChat
               thread={selectedThread}
               messages={messages}
-              currentUserId={user.uid}
+              currentUserId={user.id}
               onSendMessage={handleSendMessage}
             />
           ) : (

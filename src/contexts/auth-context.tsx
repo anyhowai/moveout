@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const newUser: Omit<User, 'id'> = {
             email: firebaseUser.email || '',
             displayName: firebaseUser.displayName || 'Anonymous User',
-            photoURL: firebaseUser.photoURL,
+            photoURL: firebaseUser.photoURL || undefined,
             createdAt: new Date(),
             lastSeen: new Date(),
             completedPickups: 0,

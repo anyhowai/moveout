@@ -67,7 +67,7 @@ export default function RatingModal({
     try {
       const ratingData: CreateRatingRequest & { raterId: string } = {
         itemId: item.id,
-        raterId: user.uid,
+        raterId: user.id,
         ratedUserId,
         rating,
         review: review.trim() || undefined,

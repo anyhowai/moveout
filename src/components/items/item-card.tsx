@@ -1,5 +1,6 @@
 'use client'
 
+import { memo, useCallback, useMemo } from 'react'
 import { Item, UrgencyLevel } from '@/lib/types'
 import { formatDate } from '@/lib/utils'
 import StatusBadge from '@/components/ui/status-badge'
@@ -13,44 +14,60 @@ interface ItemCardProps {
   distance?: string
 }
 
-export default function ItemCard({ item, onClick, showDistance, distance }: ItemCardProps) {
-  const getUrgencyColor = (urgency: UrgencyLevel): string => {
-    switch (urgency) {
-      case UrgencyLevel.URGENT:
-        return 'bg-red-100 text-red-800 border-red-200'
-      case UrgencyLevel.MODERATE:
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      case UrgencyLevel.LOW:
-        return 'bg-green-100 text-green-800 border-green-200'
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+function ItemCard({ item, onClick, showDistance, distance }: ItemCardProps) {
+  // Memoize urgency styling
+  const urgencyStyles = useMemo(() => {
+    const getUrgencyColor = (urgency: UrgencyLevel): string => {
+      switch (urgency) {
+        case UrgencyLevel.URGENT:
+          return 'bg-red-100 text-red-800 border-red-200'
+        case UrgencyLevel.MODERATE:
+          return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+        case UrgencyLevel.LOW:
+          return 'bg-green-100 text-green-800 border-green-200'
+        default:
+          return 'bg-gray-100 text-gray-800 border-gray-200'
+      }
     }
-  }
 
-  const getUrgencyText = (urgency: UrgencyLevel): string => {
-    switch (urgency) {
-      case UrgencyLevel.URGENT:
-        return 'Urgent'
-      case UrgencyLevel.MODERATE:
-        return 'Moderate'
-      case UrgencyLevel.LOW:
-        return 'Low Priority'
-      default:
-        return urgency
+    const getUrgencyText = (urgency: UrgencyLevel): string => {
+      switch (urgency) {
+        case UrgencyLevel.URGENT:
+          return 'Urgent'
+        case UrgencyLevel.MODERATE:
+          return 'Moderate'
+        case UrgencyLevel.LOW:
+          return 'Low Priority'
+        default:
+          return urgency
+      }
     }
-  }
 
-  const handleCardClick = () => {
+    return {
+      color: getUrgencyColor(item.urgency),
+      text: getUrgencyText(item.urgency)
+    }
+  }, [item.urgency])
+
+  // Memoized formatted dates
+  const formattedCreatedAt = useMemo(() => formatDate(item.createdAt), [item.createdAt])
+  const formattedPickupDeadline = useMemo(() => 
+    item.pickupDeadline ? formatDate(item.pickupDeadline) : null, 
+    [item.pickupDeadline]
+  )
+
+  // Stable event handlers
+  const handleCardClick = useCallback(() => {
     if (onClick) {
       onClick()
     }
-  }
+  }, [onClick])
 
-  const handleGetDirections = (e: React.MouseEvent) => {
+  const handleGetDirections = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
     const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(item.address)}`
     window.open(url, '_blank')
-  }
+  }, [item.address])
 
   return (
     <div
@@ -88,9 +105,9 @@ export default function ItemCard({ item, onClick, showDistance, distance }: Item
           <div className="flex flex-col items-end space-y-1">
             <StatusBadge status={item.status} size="sm" />
             <span
-              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getUrgencyColor(item.urgency)}`}
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${urgencyStyles.color}`}
             >
-              {getUrgencyText(item.urgency)}
+              {urgencyStyles.text}
             </span>
           </div>
         </div>
@@ -121,7 +138,7 @@ export default function ItemCard({ item, onClick, showDistance, distance }: Item
           </div>
 
           <div className="flex items-center justify-between text-sm text-gray-500">
-            <span>Posted {formatDate(item.createdAt)}</span>
+            <span>Posted {formattedCreatedAt}</span>
             <span>By {item.contactInfo.name}</span>
           </div>
 
@@ -129,10 +146,10 @@ export default function ItemCard({ item, onClick, showDistance, distance }: Item
             <UserReputationBadge userId={item.ownerId} size="sm" />
           </div>
 
-          {item.pickupDeadline && (
+          {formattedPickupDeadline && (
             <div className="flex items-center text-sm text-amber-600 font-medium">
               <span className="inline-block w-4 h-4 mr-2">⏰</span>
-              <span>Pickup by {formatDate(item.pickupDeadline)}</span>
+              <span>Pickup by {formattedPickupDeadline}</span>
             </div>
           )}
         </div>
@@ -149,3 +166,6 @@ export default function ItemCard({ item, onClick, showDistance, distance }: Item
     </div>
   )
 }
+
+// Memoize the component to prevent unnecessary re-renders
+export default memo(ItemCard)

@@ -10,7 +10,8 @@
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
     "test": "jest --passWithNoTests",
-    "seed-demo": "node scripts/seed-demo-data.js"
+    "seed-demo": "node scripts/seed-demo-data.js",
+    "seed-enhanced": "node scripts/enhanced-demo-data.js"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.16.0",

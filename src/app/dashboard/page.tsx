@@ -97,9 +97,9 @@ export default function DashboardPage() {
 
         {/* Tab Content */}
         <div className="p-6">
-          {activeTab === 'listings' && <MyListingsTab userId={user.uid} />}
-          {activeTab === 'messages' && <MyMessagesTab userId={user.uid} />}
-          {activeTab === 'favorites' && <MyFavoritesTab userId={user.uid} />}
+          {activeTab === 'listings' && <MyListingsTab userId={user.id} />}
+          {activeTab === 'messages' && <MyMessagesTab userId={user.id} />}
+          {activeTab === 'favorites' && <MyFavoritesTab userId={user.id} />}
           {activeTab === 'profile' && <ProfileTab user={user} />}
         </div>
       </div>

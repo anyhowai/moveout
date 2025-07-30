@@ -59,7 +59,7 @@ export default function ReportModal({
 
     try {
       const reportData: CreateReportRequest & { reporterId: string } = {
-        reporterId: user.uid,
+        reporterId: user.id,
         ...(item && { reportedItemId: item.id }),
         ...(userId && { reportedUserId: userId }),
         category: category as ReportCategory,

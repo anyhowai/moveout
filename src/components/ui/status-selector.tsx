@@ -22,7 +22,7 @@ export default function StatusSelector({
 }: StatusSelectorProps) {
   const { user } = useAuth()
   const [isUpdating, setIsUpdating] = useState(false)
-  const isOwner = user?.uid === ownerId
+  const isOwner = user?.id === ownerId
 
   const handleStatusChange = async (newStatus: ItemStatus) => {
     if (!user || !canChangeStatus(currentStatus, newStatus, isOwner)) {
@@ -38,7 +38,7 @@ export default function StatusSelector({
         },
         body: JSON.stringify({
           status: newStatus,
-          currentUserId: user.uid,
+          currentUserId: user.id,
         }),
       })
 

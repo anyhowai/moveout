@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import { Loader } from '@googlemaps/js-api-loader'
 import { Item, UrgencyLevel } from '@/lib/types'
 import { useGeolocation } from '@/hooks/use-geolocation'
+import { MapSkeletonLoader } from '@/components/ui/skeleton-loader'
+import LocationStatus from '@/components/ui/location-status'
 
 interface MapViewProps {
   items: Item[]
@@ -15,8 +17,9 @@ export default function MapView({ items, onMarkerClick }: MapViewProps) {
   const [map, setMap] = useState<google.maps.Map | null>(null)
   const [markers, setMarkers] = useState<google.maps.Marker[]>([])
   const [userMarker, setUserMarker] = useState<google.maps.Marker | null>(null)
+  const [mapLoading, setMapLoading] = useState(true)
   
-  const { coordinates: userLocation, isLoading: locationLoading, error: locationError } = useGeolocation()
+  const { coordinates: userLocation, isLoading: locationLoading, error: locationError, getCurrentLocation } = useGeolocation()
 
   useEffect(() => {
     initializeMap()
@@ -65,6 +68,7 @@ export default function MapView({ items, onMarkerClick }: MapViewProps) {
       })
 
       setMap(mapInstance)
+      setMapLoading(false)
 
       // Center on user location if available, otherwise use default
       if (userLocation) {
@@ -73,6 +77,7 @@ export default function MapView({ items, onMarkerClick }: MapViewProps) {
       }
     } catch (error) {
       console.error('Error initializing map:', error)
+      setMapLoading(false)
     }
   }
 
@@ -173,13 +178,13 @@ export default function MapView({ items, onMarkerClick }: MapViewProps) {
       : null
 
     const getStatusBadge = (status: string) => {
-      const statusColors = {
+      const statusColors: Record<string, string> = {
         available: 'bg-green-100 text-green-800 border-green-200',
         pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
         picked_up: 'bg-blue-100 text-blue-800 border-blue-200',
         expired: 'bg-red-100 text-red-800 border-red-200'
       }
-      const statusLabels = {
+      const statusLabels: Record<string, string> = {
         available: 'Available',
         pending: 'Pickup Pending',
         picked_up: 'Picked Up',
@@ -252,32 +257,22 @@ export default function MapView({ items, onMarkerClick }: MapViewProps) {
 
   return (
     <div className="w-full h-full relative">
+      {mapLoading && (
+        <div className="absolute inset-0 z-10">
+          <MapSkeletonLoader />
+        </div>
+      )}
       <div ref={mapRef} className="w-full h-full" />
       
       {/* Location status indicator */}
-      <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10">
-        {locationLoading && (
-          <div className="bg-white rounded-lg shadow-md p-2 sm:p-3 flex items-center space-x-2">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-            <span className="text-xs sm:text-sm text-gray-600 hidden sm:inline">Finding your location...</span>
-            <span className="text-xs text-gray-600 sm:hidden">Finding location...</span>
-          </div>
-        )}
-        {locationError && (
-          <div className="bg-white rounded-lg shadow-md p-2 sm:p-3 max-w-xs">
-            <div className="flex items-center space-x-2 text-amber-600">
-              <span className="text-sm">⚠️</span>
-              <span className="text-xs sm:text-sm">Location unavailable</span>
-            </div>
-            <p className="text-xs text-gray-500 mt-1 hidden sm:block">{locationError}</p>
-          </div>
-        )}
-        {userLocation && !locationLoading && (
-          <div className="bg-white rounded-lg shadow-md p-2 sm:p-3 flex items-center space-x-1 sm:space-x-2">
-            <span className="text-blue-600">📍</span>
-            <span className="text-xs sm:text-sm text-gray-600">Location found</span>
-          </div>
-        )}
+      <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 max-w-xs">
+        <LocationStatus
+          coordinates={userLocation}
+          isLoading={locationLoading}
+          error={locationError}
+          isSupported={typeof navigator !== 'undefined' && 'geolocation' in navigator}
+          onRetryLocation={getCurrentLocation}
+        />
       </div>
 
       {!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (

@@ -1,17 +1,20 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import MapView from '@/components/map/map-view'
 import ItemCard from '@/components/items/item-card'
 import ItemDetails from '@/components/items/item-details'
 import SearchFilters from '@/components/ui/search-filters'
 import LoadingSpinner from '@/components/ui/loading-spinner'
+import { ListSkeletonLoader, MapSkeletonLoader } from '@/components/ui/skeleton-loader'
+import { NoItemsFound } from '@/components/ui/empty-state'
 import ErrorMessage from '@/components/ui/error-message'
 import MessageModal from '@/components/messages/message-modal'
 import { useItemExpiration } from '@/hooks/use-item-expiration'
 import { useFavorites } from '@/contexts/favorites-context'
 import { filterItemsByDistance, type Coordinates } from '@/lib/geolocation-utils'
 import { Item, ItemCategory, UrgencyLevel } from '@/lib/types'
+import { retryFetch } from '@/lib/retry-utils'
 
 export default function HomePage() {
   const [items, setItems] = useState<Item[]>([])
@@ -62,12 +65,17 @@ export default function HomePage() {
     }
   }, [addFavorite, removeFavorite, isFavorite])
 
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
       
-      const response = await fetch('/api/items')
+      const response = await retryFetch('/api/items', {
+        retryOptions: {
+          maxAttempts: 3,
+          delay: 1000
+        }
+      })
       
       if (!response.ok) {
         throw new Error(`Failed to fetch items: ${response.status} ${response.statusText}`)
@@ -82,11 +90,12 @@ export default function HomePage() {
       }
     } catch (error) {
       console.error('Error fetching items:', error)
-      setError(error instanceof Error ? error.message : 'Failed to load items')
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load items'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   // Filter items based on search criteria
   const filteredItems = useMemo(() => {
@@ -110,14 +119,28 @@ export default function HomePage() {
     return filtered
   }, [items, searchTerm, selectedCategory, selectedUrgency, userLocation, selectedDistance])
 
-  const handleItemClick = (item: Item) => {
+  const handleItemClick = useCallback((item: Item) => {
     setSelectedItem(item)
-  }
+  }, [])
 
-  const handleMapMarkerClick = (item: Item) => {
+  const handleMapMarkerClick = useCallback((item: Item) => {
     // For map clicks, we want to show the message modal directly
     setMessageItem(item)
-  }
+  }, [])
+
+  const hasActiveFilters = useMemo(() => {
+    return searchTerm !== '' || 
+           selectedCategory !== 'all' || 
+           selectedUrgency !== 'all' || 
+           selectedDistance !== null
+  }, [searchTerm, selectedCategory, selectedUrgency, selectedDistance])
+
+  const clearAllFilters = useCallback(() => {
+    setSearchTerm('')
+    setSelectedCategory('all')
+    setSelectedUrgency('all')
+    setSelectedDistance(null)
+  }, [])
 
   if (loading) {
     return (
@@ -130,8 +153,29 @@ export default function HomePage() {
             Browse furniture and items available for pickup.
           </p>
         </div>
-        <div className="flex items-center justify-center h-96">
-          <LoadingSpinner size="lg" message="Loading items..." />
+        
+        {/* Skeleton filters */}
+        <div className="mb-6 space-y-4">
+          <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+          <div className="flex gap-4">
+            <div className="h-10 bg-gray-200 rounded animate-pulse flex-1"></div>
+            <div className="h-10 bg-gray-200 rounded animate-pulse w-32"></div>
+          </div>
+        </div>
+
+        {/* View mode skeleton */}
+        <div className="mb-4">
+          <div className="flex gap-2">
+            <div className="h-10 bg-gray-200 rounded animate-pulse w-24"></div>
+            <div className="h-10 bg-gray-200 rounded animate-pulse w-24"></div>
+          </div>
+        </div>
+        
+        {/* Content skeleton - default to map view */}
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+          <div className="h-96 lg:h-[600px]">
+            <MapSkeletonLoader />
+          </div>
         </div>
       </div>
     )
@@ -153,6 +197,15 @@ export default function HomePage() {
             title="Failed to Load Items"
             message={error}
             onRetry={fetchItems}
+            showDetails={true}
+            details={error}
+            actions={[
+              {
+                label: 'Refresh Page',
+                action: () => window.location.reload(),
+                variant: 'secondary'
+              }
+            ]}
           />
         </div>
       </div>
@@ -226,14 +279,11 @@ export default function HomePage() {
               />
             ))
           ) : (
-            <div className="col-span-full text-center py-12">
-              <div className="text-gray-400 text-6xl mb-4">📦</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No items found</h3>
-              <p className="text-gray-600">
-                {items.length === 0 
-                  ? "Be the first to post an item!" 
-                  : "Try adjusting your search filters."}
-              </p>
+            <div className="col-span-full">
+              <NoItemsFound 
+                hasFilters={hasActiveFilters} 
+                onClearFilters={clearAllFilters}
+              />
             </div>
           )}
         </div>
