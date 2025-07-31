@@ -10,7 +10,7 @@ import '../styles/globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'MoveOut Map',
+  title: 'Move Out',
   description: 'Find furniture and items near you on an interactive map',
 }
 
@@ -31,7 +31,7 @@ export default function RootLayout({
                 <div className="flex justify-between items-center h-16">
                   <div className="flex items-center">
                     <a href="/" className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
-                      MoveOut Map
+                      Move Out
                     </a>
                   </div>
                   <nav className="flex items-center space-x-4">

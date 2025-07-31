@@ -1,7 +1,7 @@
 {
   "name": "moveout",
   "version": "1.0.0",
-  "description": "MoveOut Map - Google Maps Platform Awards hackathon MVP",
+  "description": "Move Out - Google Maps Platform Awards hackathon MVP",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

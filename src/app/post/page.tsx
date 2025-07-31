@@ -96,7 +96,7 @@ export default function PostItemPage() {
               Sign in to post an item
             </h2>
             <p className="text-gray-600 mb-6">
-              You need to be signed in to post items on MoveOut Map.
+              You need to be signed in to post items on Move Out.
             </p>
             <button
               onClick={() => setShowAuthModal(true)}

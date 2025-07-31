@@ -150,20 +150,29 @@ export async function POST(request: NextRequest) {
 
     // If no threadId provided, check if a thread already exists for this item and users
     if (!actualThreadId) {
+      // First, get the item to determine who is the seller (owner)
+      const itemDoc = await getDoc(doc(db, 'items', itemId))
+      if (!itemDoc.exists()) {
+        const response: ApiResponse<never> = {
+          success: false,
+          error: 'Item not found',
+        }
+        return NextResponse.json(response, { status: 404 })
+      }
+
+      const itemData = itemDoc.data()
+      const itemOwnerId = itemData.ownerId
+
+      // Determine buyer and seller roles correctly
+      const buyerId = senderId === itemOwnerId ? recipientId : senderId
+      const sellerId = itemOwnerId
+
       const existingThreadQuery = query(
         collection(db, 'messageThreads'),
         and(
           where('itemId', '==', itemId),
-          or(
-            and(
-              where('buyerId', '==', senderId),
-              where('sellerId', '==', recipientId)
-            ),
-            and(
-              where('buyerId', '==', recipientId),
-              where('sellerId', '==', senderId)
-            )
-          )
+          where('buyerId', '==', buyerId),
+          where('sellerId', '==', sellerId)
         )
       )
 
@@ -172,11 +181,11 @@ export async function POST(request: NextRequest) {
       if (!existingThreadSnapshot.empty) {
         actualThreadId = existingThreadSnapshot.docs[0].id
       } else {
-        // Create new thread
+        // Create new thread with correct buyer/seller roles
         const newThread = {
           itemId,
-          buyerId: senderId,
-          sellerId: recipientId,
+          buyerId,
+          sellerId,
           createdAt: serverTimestamp(),
           lastMessageAt: serverTimestamp(),
           lastMessage: content.substring(0, 100),
