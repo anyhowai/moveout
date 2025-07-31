@@ -29,7 +29,7 @@ A Google Maps Platform Awards hackathon MVP where users can post furniture items
 - **Database**: Firebase Firestore
 - **Authentication**: Firebase Auth (Google OAuth + Email/Password)
 - **Storage**: Firebase Storage (images)
-- **Maps**: Google Maps JavaScript SDK + APIs (Geocoding, Directions, Places)
+- **Maps**: Google Maps JavaScript SDK + APIs (Geocoding, Directions)
 - **Geolocation**: Browser Geolocation API with enhanced location services
 
 ## 🏃‍♂️ Quick Start
@@ -45,7 +45,6 @@ Enable these Google Cloud Platform APIs:
 - **Maps JavaScript API**: For interactive map display
 - **Geocoding API**: For address validation and coordinates
 - **Directions API**: For navigation routing
-- **Places API**: For location search and autocomplete
 
 ### Setup
 
@@ -78,7 +77,6 @@ Enable these Google Cloud Platform APIs:
      - Maps JavaScript API
      - Geocoding API
      - Directions API
-     - Places API
    - Create API credentials and restrict by HTTP referrers for security
    - Create an API key and add it to `.env.local`
 

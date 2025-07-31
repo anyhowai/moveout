@@ -44,7 +44,7 @@ export default function MapView({ items, onMarkerClick }: MapViewProps) {
       const loader = new Loader({
         apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
         version: 'weekly',
-        libraries: ['places', 'geometry'],
+        libraries: ['geometry'],
       })
 
       const { Map } = await loader.importLibrary('maps')
