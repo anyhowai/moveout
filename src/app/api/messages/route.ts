@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { MessageThread, Message, ApiResponse } from '@/lib/types'
+import { verifyUserAccess } from '@/lib/auth-utils'
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,6 +29,16 @@ export async function GET(request: NextRequest) {
         error: 'User ID is required',
       }
       return NextResponse.json(response, { status: 400 })
+    }
+
+    // Verify user is authenticated and accessing their own messages
+    const isAuthenticated = await verifyUserAccess(request, userId)
+    if (!isAuthenticated) {
+      const response: ApiResponse<never> = {
+        success: false,
+        error: 'Unauthorized access',
+      }
+      return NextResponse.json(response, { status: 401 })
     }
 
     if (threadId) {
@@ -144,6 +155,16 @@ export async function POST(request: NextRequest) {
         error: 'Missing required fields',
       }
       return NextResponse.json(response, { status: 400 })
+    }
+
+    // Verify user is authenticated and can send messages as the specified sender
+    const isAuthenticated = await verifyUserAccess(request, senderId)
+    if (!isAuthenticated) {
+      const response: ApiResponse<never> = {
+        success: false,
+        error: 'Unauthorized access - you must be logged in to send messages',
+      }
+      return NextResponse.json(response, { status: 401 })
     }
 
     let actualThreadId = threadId

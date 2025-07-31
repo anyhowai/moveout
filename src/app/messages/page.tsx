@@ -10,7 +10,7 @@ import MessageThreadList from '@/components/messages/message-thread-list'
 import MessageChat from '@/components/messages/message-chat'
 
 export default function MessagesPage() {
-  const { user, isLoading: authLoading } = useAuth()
+  const { user, firebaseUser, isLoading: authLoading } = useAuth()
   const [threads, setThreads] = useState<MessageThread[]>([])
   const [selectedThread, setSelectedThread] = useState<MessageThread | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
@@ -33,13 +33,19 @@ export default function MessagesPage() {
   }, [selectedThread, user])
 
   const fetchThreads = async () => {
-    if (!user) return
+    if (!user || !firebaseUser) return
 
     try {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`/api/messages?userId=${user.id}`)
+      const token = await firebaseUser.getIdToken()
+      const response = await fetch(`/api/messages?userId=${user.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'x-user-id': user.id,
+        },
+      })
       
       if (!response.ok) {
         throw new Error(`Failed to fetch threads: ${response.status}`)
@@ -61,10 +67,16 @@ export default function MessagesPage() {
   }
 
   const fetchMessages = async (threadId: string) => {
-    if (!user) return
+    if (!user || !firebaseUser) return
 
     try {
-      const response = await fetch(`/api/messages?userId=${user.id}&threadId=${threadId}`)
+      const token = await firebaseUser.getIdToken()
+      const response = await fetch(`/api/messages?userId=${user.id}&threadId=${threadId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'x-user-id': user.id,
+        },
+      })
       
       if (!response.ok) {
         throw new Error(`Failed to fetch messages: ${response.status}`)
@@ -84,17 +96,20 @@ export default function MessagesPage() {
   }
 
   const handleSendMessage = async (content: string) => {
-    if (!user || !selectedThread) return
+    if (!user || !selectedThread || !firebaseUser) return
 
     try {
       const recipientId = selectedThread.buyerId === user.id 
         ? selectedThread.sellerId 
         : selectedThread.buyerId
 
+      const token = await firebaseUser.getIdToken()
       const response = await fetch('/api/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'x-user-id': user.id,
         },
         body: JSON.stringify({
           content,

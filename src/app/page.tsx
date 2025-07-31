@@ -10,19 +10,23 @@ import { ListSkeletonLoader, MapSkeletonLoader } from '@/components/ui/skeleton-
 import { NoItemsFound } from '@/components/ui/empty-state'
 import ErrorMessage from '@/components/ui/error-message'
 import MessageModal from '@/components/messages/message-modal'
+import AuthModal from '@/components/auth/auth-modal'
 import { useItemExpiration } from '@/hooks/use-item-expiration'
 import { useFavorites } from '@/contexts/favorites-context'
+import { useAuth } from '@/contexts/auth-context'
 import { filterItemsByDistance, type Coordinates } from '@/lib/geolocation-utils'
 import { Item, ItemCategory, UrgencyLevel } from '@/lib/types'
 import { retryFetch } from '@/lib/retry-utils'
 
 export default function HomePage() {
+  const { user } = useAuth()
   const [items, setItems] = useState<Item[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map')
   const [selectedItem, setSelectedItem] = useState<Item | null>(null)
   const [messageItem, setMessageItem] = useState<Item | null>(null)
+  const [showAuthModal, setShowAuthModal] = useState(false)
   
   // Search and filter state
   const [searchTerm, setSearchTerm] = useState('')
@@ -124,9 +128,21 @@ export default function HomePage() {
   }, [])
 
   const handleMapMarkerClick = useCallback((item: Item) => {
-    // For map clicks, we want to show the message modal directly
+    // Check if user is authenticated before showing message modal
+    if (!user) {
+      setShowAuthModal(true)
+      return
+    }
+    
+    // Check if user is trying to message themselves
+    if (user.id === item.ownerId) {
+      alert('You cannot message yourself!')
+      return
+    }
+    
+    // For map clicks, show the message modal
     setMessageItem(item)
-  }, [])
+  }, [user])
 
   const hasActiveFilters = useMemo(() => {
     return searchTerm !== '' || 
@@ -330,6 +346,11 @@ export default function HomePage() {
           item={messageItem}
         />
       )}
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </div>
   )
 }

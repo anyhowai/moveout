@@ -11,26 +11,43 @@ interface MessageModalProps {
 }
 
 export default function MessageModal({ isOpen, onClose, item }: MessageModalProps) {
-  const { user } = useAuth()
+  const { user, firebaseUser } = useAuth()
   const [message, setMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
   if (!isOpen) return null
 
+  // If modal is open but user is not authenticated, close it
+  if (!user) {
+    onClose()
+    return null
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!user || !message.trim()) {
+    if (!user) {
+      alert('Please sign in to send a message.')
+      onClose()
+      return
+    }
+    
+    if (!message.trim()) {
       return
     }
 
     setIsLoading(true)
     try {
+      // Get user's auth token
+      const token = await firebaseUser?.getIdToken()
+      
       // Send the message
       const messageResponse = await fetch('/api/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'x-user-id': user.id,
         },
         body: JSON.stringify({
           content: message,
