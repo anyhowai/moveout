@@ -64,7 +64,11 @@ export default function MessageThreadList({
               
               <div className="flex justify-between items-center">
                 <span className="text-xs text-gray-500">
-                  {thread.buyerId === currentUserId ? 'Seller' : 'Buyer'}: {otherUserId}
+                  {thread.buyerId === currentUserId ? 'Seller' : 'Buyer'}: {
+                    thread.buyerId === currentUserId 
+                      ? (thread.sellerName || 'Unknown User')
+                      : (thread.buyerName || 'Unknown User')
+                  }
                 </span>
                 <span className="text-xs text-gray-500">
                   {formatDate(thread.lastMessageAt)}

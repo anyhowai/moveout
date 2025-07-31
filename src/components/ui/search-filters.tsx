@@ -77,12 +77,12 @@ export default function SearchFilters({
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="min-w-0 flex-1 sm:flex-none sm:w-48">
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+          <div className="min-w-0 sm:w-48">
             <select
               value={selectedCategory}
               onChange={(e) => onCategoryChange(e.target.value as ItemCategory | 'all')}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              className="block w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 h-10"
             >
               {categories.map((category) => (
                 <option key={category.value} value={category.value}>
@@ -92,11 +92,11 @@ export default function SearchFilters({
             </select>
           </div>
 
-          <div className="min-w-0 flex-1 sm:flex-none sm:w-48">
+          <div className="min-w-0 sm:w-48">
             <select
               value={selectedUrgency}
               onChange={(e) => onUrgencyChange(e.target.value as UrgencyLevel | 'all')}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              className="block w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 h-10"
             >
               {urgencyLevels.map((urgency) => (
                 <option key={urgency.value} value={urgency.value}>
@@ -107,7 +107,7 @@ export default function SearchFilters({
           </div>
 
           {showDistanceFilter && onDistanceChange && onLocationChange && (
-            <div className="min-w-0 flex-1 sm:flex-none sm:w-64">
+            <div className="min-w-0 sm:w-64">
               <DistanceFilter
                 onDistanceChange={onDistanceChange}
                 onLocationChange={onLocationChange}
@@ -118,7 +118,7 @@ export default function SearchFilters({
           {hasActiveFilters && (
             <button
               onClick={handleClearFilters}
-              className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors h-10 flex items-center justify-center"
             >
               Clear
             </button>
@@ -126,15 +126,25 @@ export default function SearchFilters({
         </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-between text-sm text-gray-600">
-        <span>
-          {itemCount} {itemCount === 1 ? 'item' : 'items'} found
-          {hasActiveFilters && ' with current filters'}
-        </span>
+      <div className="mt-3 space-y-2">
+        {/* Location status for distance filter */}
+        {showDistanceFilter && (
+          <div className="text-xs text-gray-500 flex items-center gap-2">
+            <span className="text-blue-600">📍</span>
+            <span>Location-based distance filtering available</span>
+          </div>
+        )}
+        
+        <div className="flex items-center justify-between text-sm text-gray-600">
+          <span>
+            {itemCount} {itemCount === 1 ? 'item' : 'items'} found
+            {hasActiveFilters && ' with current filters'}
+          </span>
+        </div>
         
         {hasActiveFilters && (
           <div className="flex items-center gap-2">
-            <span>Active filters:</span>
+            <span className="text-gray-700 font-medium">Active filters:</span>
             <div className="flex gap-1">
               {searchTerm && (
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">

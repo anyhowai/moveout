@@ -132,14 +132,16 @@ export default function HomePage() {
     return searchTerm !== '' || 
            selectedCategory !== 'all' || 
            selectedUrgency !== 'all' || 
-           selectedDistance !== null
-  }, [searchTerm, selectedCategory, selectedUrgency, selectedDistance])
+           selectedDistance !== null ||
+           userLocation !== null
+  }, [searchTerm, selectedCategory, selectedUrgency, selectedDistance, userLocation])
 
   const clearAllFilters = useCallback(() => {
     setSearchTerm('')
     setSelectedCategory('all')
     setSelectedUrgency('all')
     setSelectedDistance(null)
+    setUserLocation(null)
   }, [])
 
   if (loading) {

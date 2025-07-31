@@ -24,7 +24,6 @@ export function useItemExpiration({
       if (response.ok) {
         const result = await response.json()
         if (result.success && result.data.expiredCount > 0) {
-          console.log(`Expired ${result.data.expiredCount} items:`, result.data.expiredItems)
           onItemsExpired?.(result.data.expiredItems)
         }
       }

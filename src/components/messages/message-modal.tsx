@@ -14,14 +14,15 @@ export default function MessageModal({ isOpen, onClose, item }: MessageModalProp
   const { user } = useAuth()
   const [message, setMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [requestPickup, setRequestPickup] = useState(false)
 
   if (!isOpen) return null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!user || !message.trim()) return
+    if (!user || !message.trim()) {
+      return
+    }
 
     setIsLoading(true)
     try {
@@ -39,31 +40,18 @@ export default function MessageModal({ isOpen, onClose, item }: MessageModalProp
         }),
       })
 
+      const responseData = await messageResponse.json()
+      console.log('Message response:', responseData)
+
       if (!messageResponse.ok) {
-        throw new Error('Failed to send message')
+        throw new Error(`Failed to send message: ${responseData.error || messageResponse.statusText}`)
       }
 
-      // If pickup is requested and item is available, update status to pending
-      if (requestPickup && item.status === ItemStatus.AVAILABLE) {
-        const statusResponse = await fetch(`/api/items/${item.id}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            status: ItemStatus.PENDING,
-            currentUserId: user.id,
-          }),
-        })
-
-        if (!statusResponse.ok) {
-          console.error('Failed to update item status, but message was sent')
-        }
-      }
+      // Status changes should only be done by the item owner
+      // Removed automatic status change to pending
 
       alert('Message sent successfully!')
       setMessage('')
-      setRequestPickup(false)
       onClose()
     } catch (error) {
       console.error('Error sending message:', error)
@@ -119,20 +107,6 @@ export default function MessageModal({ isOpen, onClose, item }: MessageModalProp
               />
             </div>
 
-            {item.status === ItemStatus.AVAILABLE && (
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="requestPickup"
-                  checked={requestPickup}
-                  onChange={(e) => setRequestPickup(e.target.checked)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label htmlFor="requestPickup" className="ml-2 block text-sm text-gray-900">
-                  Request pickup (mark item as pending)
-                </label>
-              </div>
-            )}
 
             <div className="flex justify-end space-x-3">
               <button

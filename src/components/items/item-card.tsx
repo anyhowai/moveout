@@ -83,7 +83,16 @@ function ItemCard({ item, onClick, showDistance, distance }: ItemCardProps) {
               src={item.imageUrl}
               alt={item.title}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                // If image fails to load, show placeholder
+                e.currentTarget.style.display = 'none'
+                const placeholder = e.currentTarget.nextElementSibling as HTMLElement
+                if (placeholder) placeholder.style.display = 'flex'
+              }}
             />
+            <div className="w-full h-48 bg-gray-100 flex items-center justify-center" style={{ display: 'none' }}>
+              <div className="text-gray-400 text-4xl">📦</div>
+            </div>
           </div>
         ) : (
           <div className="w-full h-48 bg-gray-100 flex items-center justify-center">

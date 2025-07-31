@@ -5,6 +5,7 @@ import {
   getDocs, 
   getDoc,
   doc,
+  updateDoc,
   serverTimestamp, 
   query, 
   where, 
@@ -68,7 +69,7 @@ export async function GET(request: NextRequest) {
       const threadsSnapshot = await getDocs(threadsQuery)
       const threads: MessageThread[] = []
 
-      // Get item titles for threads
+      // Get item titles and user names for threads
       for (const docSnap of threadsSnapshot.docs) {
         const data = docSnap.data()
         
@@ -83,10 +84,34 @@ export async function GET(request: NextRequest) {
           console.error('Error fetching item title:', error)
         }
 
+        // Get buyer and seller names
+        let buyerName = 'Unknown User'
+        let sellerName = 'Unknown User'
+        
+        try {
+          const buyerDoc = await getDoc(doc(db, 'users', data.buyerId))
+          if (buyerDoc.exists()) {
+            buyerName = buyerDoc.data().displayName || 'Unknown User'
+          }
+        } catch (error) {
+          console.error('Error fetching buyer name:', error)
+        }
+        
+        try {
+          const sellerDoc = await getDoc(doc(db, 'users', data.sellerId))
+          if (sellerDoc.exists()) {
+            sellerName = sellerDoc.data().displayName || 'Unknown User'
+          }
+        } catch (error) {
+          console.error('Error fetching seller name:', error)
+        }
+
         threads.push({
           id: docSnap.id,
           ...data,
           itemTitle,
+          buyerName,
+          sellerName,
           createdAt: data.createdAt?.toDate() || new Date(),
           lastMessageAt: data.lastMessageAt?.toDate() || new Date(),
         } as MessageThread)
@@ -176,14 +201,13 @@ export async function POST(request: NextRequest) {
     const messageRef = await addDoc(collection(db, 'messages'), messageData)
 
     // Update thread with last message info
-    // Note: In a production app, you'd want to use a transaction for this
+    const threadRef = doc(db, 'messageThreads', actualThreadId)
     const threadUpdateData = {
       lastMessageAt: serverTimestamp(),
       lastMessage: content.substring(0, 100),
-      [`unreadCount.${recipientId}`]: 1, // This is a simplified approach
     }
 
-    // You'd update the thread document here, but for now we'll skip the complex update
+    await updateDoc(threadRef, threadUpdateData)
 
     const response: ApiResponse<{ messageId: string; threadId: string }> = {
       success: true,

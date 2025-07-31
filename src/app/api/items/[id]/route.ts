@@ -259,12 +259,17 @@ export async function PATCH(
     }
 
     const itemData = itemDoc.data()
+    
+    // Allow item owners to update any field
+    // Allow other users to only update status to 'pending' (for pickup requests)
     if (itemData.ownerId !== currentUserId) {
-      const response: ApiResponse<never> = {
-        success: false,
-        error: 'Unauthorized - you can only update your own items',
+      if (status !== 'pending' && status !== undefined) {
+        const response: ApiResponse<never> = {
+          success: false,
+          error: 'Unauthorized - you can only request pickup on items you don\'t own',
+        }
+        return NextResponse.json(response, { status: 403 })
       }
-      return NextResponse.json(response, { status: 403 })
     }
 
     // Prepare update data

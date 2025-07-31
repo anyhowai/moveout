@@ -148,9 +148,7 @@ export default function MapView({ items, onMarkerClick }: MapViewProps) {
 
       marker.addListener('click', () => {
         infoWindow.open(map, marker)
-        if (onMarkerClick) {
-          onMarkerClick(item)
-        }
+        // Don't trigger onMarkerClick here - only when Contact button is clicked
       })
 
       newMarkers.push(marker)
@@ -197,7 +195,26 @@ export default function MapView({ items, onMarkerClick }: MapViewProps) {
 
     return `
       <div class="p-2 max-w-xs">
-        <h3 class="font-semibold text-lg mb-1">${item.title}</h3>
+        ${item.imageUrl ? `
+          <div class="mb-3">
+            <img 
+              src="${item.imageUrl}" 
+              alt="${item.title}" 
+              class="w-full h-32 object-cover rounded-md"
+              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+            />
+            <div class="w-full h-32 bg-gray-100 rounded-md flex items-center justify-center text-gray-400 text-2xl" style="display: none;">
+              📦
+            </div>
+          </div>
+        ` : `
+          <div class="mb-3">
+            <div class="w-full h-32 bg-gray-100 rounded-md flex items-center justify-center text-gray-400 text-2xl">
+              📦
+            </div>
+          </div>
+        `}
+        <h3 class="font-semibold text-lg mb-1 text-gray-900">${item.title}</h3>
         <div class="flex items-center space-x-2 mb-2">
           ${getStatusBadge(item.status)}
           <div class="flex items-center">
@@ -206,7 +223,7 @@ export default function MapView({ items, onMarkerClick }: MapViewProps) {
           </div>
           ${item.distance ? `<span class="text-xs text-blue-600 font-medium">${item.distance.formatted}</span>` : ''}
         </div>
-        ${item.description ? `<p class="text-sm text-gray-600 mb-2">${item.description}</p>` : ''}
+        ${item.description ? `<p class="text-sm text-gray-600 mb-2 line-clamp-2">${item.description}</p>` : ''}
         ${pickupDeadline ? `<p class="text-xs text-amber-600 mb-2">⏰ Pickup by: ${pickupDeadline}</p>` : ''}
         <p class="text-xs text-gray-500 mb-3">${item.address}</p>
         <div class="flex space-x-2">

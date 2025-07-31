@@ -130,13 +130,13 @@ export function isGeolocationSupported(): boolean {
  */
 export function getDistanceOptions(): Array<{ value: number; label: string }> {
   return [
-    { value: 1, label: 'Within 1 mile' },
-    { value: 2, label: 'Within 2 miles' },
-    { value: 5, label: 'Within 5 miles' },
-    { value: 10, label: 'Within 10 miles' },
-    { value: 25, label: 'Within 25 miles' },
-    { value: 50, label: 'Within 50 miles' },
-    { value: 100, label: 'Within 100 miles' },
+    { value: 1, label: '1 mile' },
+    { value: 2, label: '2 miles' },
+    { value: 5, label: '5 miles' },
+    { value: 10, label: '10 miles' },
+    { value: 25, label: '25 miles' },
+    { value: 50, label: '50 miles' },
+    { value: 100, label: '100 miles' },
   ]
 }
 

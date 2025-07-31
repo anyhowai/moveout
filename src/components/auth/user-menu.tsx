@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import Link from 'next/link'
 import { useAuth } from '@/contexts/auth-context'
 import AuthModal from './auth-modal'
 
 export default function UserMenu() {
-  const { user, signOut } = useAuth()
+  const { user, signOut, isLoading } = useAuth()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -30,6 +31,13 @@ export default function UserMenu() {
     } catch (error) {
       console.error('Error signing out:', error)
     }
+  }
+
+  // Show loading state or nothing while auth is loading
+  if (isLoading) {
+    return (
+      <div className="w-16 h-10 bg-gray-200 rounded-md animate-pulse"></div>
+    )
   }
 
   if (!user) {
@@ -87,29 +95,29 @@ export default function UserMenu() {
               <p className="text-sm text-gray-500">{user.email}</p>
             </div>
             
-            <a
+            <Link
               href="/dashboard"
               className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
               onClick={() => setIsDropdownOpen(false)}
             >
               Dashboard
-            </a>
+            </Link>
             
-            <a
+            <Link
               href="/messages"
               className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
               onClick={() => setIsDropdownOpen(false)}
             >
               Messages
-            </a>
+            </Link>
             
-            <a
+            <Link
               href="/profile"
               className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
               onClick={() => setIsDropdownOpen(false)}
             >
               Profile Settings
-            </a>
+            </Link>
             
             <div className="border-t border-gray-100">
               <button

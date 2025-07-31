@@ -60,7 +60,11 @@ export default function MessageChat({
           {thread.itemTitle || 'Unknown Item'}
         </h3>
         <p className="text-sm text-gray-600">
-          Chatting with {thread.buyerId === currentUserId ? 'seller' : 'buyer'}: {otherUserId}
+          Chatting with {thread.buyerId === currentUserId ? 'seller' : 'buyer'}: {
+            thread.buyerId === currentUserId 
+              ? (thread.sellerName || 'Unknown User')
+              : (thread.buyerName || 'Unknown User')
+          }
         </p>
       </div>
 

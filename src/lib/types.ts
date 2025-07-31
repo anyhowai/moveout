@@ -108,6 +108,8 @@ export interface MessageThread {
   itemTitle?: string
   buyerId: string
   sellerId: string
+  buyerName?: string
+  sellerName?: string
   lastMessage: string
   lastMessageAt: Date
   createdAt: Date

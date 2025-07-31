@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { collection, addDoc, getDocs, serverTimestamp, query, where, orderBy } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { db, storage, auth } from '@/lib/firebase'
+import { db, storage } from '@/lib/firebase'
 import { Item, CreateItemRequest, ApiResponse, ItemStatus } from '@/lib/types'
 import { geocodeAddress, generateId } from '@/lib/utils'
+import { validateField, validateImageFile, itemFormRules } from '@/lib/validation'
 
 export async function GET(request: NextRequest) {
   try {
@@ -109,6 +110,10 @@ export async function POST(request: NextRequest) {
     const ownerId = formData.get('ownerId') as string
     const image = formData.get('image') as File | null
 
+    // Server-side validation using the same validation rules as client
+    const validationErrors: string[] = []
+    
+    // Validate required fields first
     if (!title || !category || !urgency || !address || !contactName || !ownerId) {
       const response: ApiResponse<never> = {
         success: false,
@@ -116,13 +121,75 @@ export async function POST(request: NextRequest) {
       }
       return NextResponse.json(response, { status: 400 })
     }
+    
+    // Validate each field against rules
+    const fieldsToValidate = {
+      title,
+      description: description || '',
+      address,
+      'contactInfo.name': contactName,
+      'contactInfo.email': contactEmail || '',
+      'contactInfo.phone': contactPhone || ''
+    }
+    
+    for (const [fieldName, value] of Object.entries(fieldsToValidate)) {
+      const rules = itemFormRules[fieldName as keyof typeof itemFormRules]
+      if (rules) {
+        const error = validateField(fieldName, value, rules)
+        if (error) {
+          validationErrors.push(error.message)
+        }
+      }
+    }
+    
+    // Validate category and urgency values
+    const validCategories = ['furniture', 'electronics', 'clothing', 'books', 'kitchen', 'decoration', 'other']
+    const validUrgencies = ['low', 'moderate', 'urgent']
+    
+    if (!validCategories.includes(category)) {
+      validationErrors.push('Invalid category')
+    }
+    
+    if (!validUrgencies.includes(urgency)) {
+      validationErrors.push('Invalid urgency level')
+    }
+    
+    // Validate image file if provided
+    if (image && image.size > 0) {
+      const imageError = validateImageFile(image)
+      if (imageError) {
+        validationErrors.push(imageError.message)
+      }
+    }
+    
+    // Return validation errors if any
+    if (validationErrors.length > 0) {
+      const response: ApiResponse<never> = {
+        success: false,
+        error: `Validation failed: ${validationErrors.join(', ')}`,
+      }
+      return NextResponse.json(response, { status: 400 })
+    }
 
-    // Parse pickup deadline if provided
+    // Parse and validate pickup deadline if provided
     let pickupDeadline: Date | undefined
     if (pickupDeadlineStr && pickupDeadlineStr !== 'undefined') {
       pickupDeadline = new Date(pickupDeadlineStr)
       if (isNaN(pickupDeadline.getTime())) {
-        pickupDeadline = undefined
+        const response: ApiResponse<never> = {
+          success: false,
+          error: 'Invalid pickup deadline format',
+        }
+        return NextResponse.json(response, { status: 400 })
+      }
+      
+      // Ensure pickup deadline is in the future
+      if (pickupDeadline.getTime() <= Date.now()) {
+        const response: ApiResponse<never> = {
+          success: false,
+          error: 'Pickup deadline must be in the future',
+        }
+        return NextResponse.json(response, { status: 400 })
       }
     }
 
