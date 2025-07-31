@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { useRouter } from 'next/navigation'
 
 export default function ProfilePage() {
-  const { user, loading } = useAuth()
+  const { user, isLoading } = useAuth()
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [displayName, setDisplayName] = useState('')
@@ -13,7 +13,7 @@ export default function ProfilePage() {
   const [phone, setPhone] = useState('')
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!isLoading && !user) {
       router.push('/')
     }
     if (user) {
@@ -21,9 +21,9 @@ export default function ProfilePage() {
       setEmail(user.email || '')
       setPhone(user.phone || '')
     }
-  }, [user, loading, router])
+  }, [user, isLoading, router])
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-2xl mx-auto px-4">

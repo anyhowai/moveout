@@ -40,6 +40,13 @@ A Google Maps Platform Awards hackathon MVP where users can post furniture items
 2. Google Cloud Platform account with Maps API enabled
 3. Firebase project set up
 
+### Required APIs
+Enable these Google Cloud Platform APIs:
+- **Maps JavaScript API**: For interactive map display
+- **Geocoding API**: For address validation and coordinates
+- **Directions API**: For navigation routing
+- **Places API**: For location search and autocomplete
+
 ### Setup
 
 1. **Clone and install dependencies**
@@ -66,19 +73,28 @@ A Google Maps Platform Awards hackathon MVP where users can post furniture items
    ```
 
 3. **Set up Google Maps API**
+   - Create a new project in [Google Cloud Console](https://console.cloud.google.com/)
    - Enable these APIs in Google Cloud Console:
      - Maps JavaScript API
      - Geocoding API
      - Directions API
+     - Places API
+   - Create API credentials and restrict by HTTP referrers for security
    - Create an API key and add it to `.env.local`
 
 4. **Set up Firebase**
-   - Create a new Firebase project
-   - Enable Firestore Database
-   - Enable Firebase Storage
-   - Get your config values and add to `.env.local`
+   - Create a new Firebase project at [Firebase Console](https://console.firebase.google.com/)
+   - Enable Firestore Database (start in test mode for development)
+   - Enable Firebase Authentication (Google + Email/Password)
+   - Enable Firebase Storage for image uploads
+   - Get your config values from Project Settings and add to `.env.local`
 
-5. **Run the development server**
+5. **Seed demo data (optional)**
+   ```bash
+   npm run seed-enhanced
+   ```
+
+6. **Run the development server**
    ```bash
    npm run dev
    ```
