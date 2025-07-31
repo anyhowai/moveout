@@ -52,10 +52,92 @@ export default function AddressAutocomplete({
     }
 
     try {
+      // Monkey-patch attachShadow to open the shadow DOM for styling
+      if (!(window as any).__shadowDOMPatched) {
+        const originalAttachShadow = Element.prototype.attachShadow
+        
+        Element.prototype.attachShadow = function (init) {
+          if (this.localName === 'gmp-place-autocomplete') {
+            const shadow = originalAttachShadow.call(this, {
+              ...init,
+              mode: 'open'
+            })
+            
+            const style = document.createElement('style')
+            style.textContent = `
+              .widget-container { 
+                border: none !important; 
+                background: white !important;
+              }
+              .input-container { 
+                padding: 0px !important; 
+                background: white !important;
+              }
+              input { 
+                color: #111827 !important; 
+                background: white !important;
+                border: none !important;
+                outline: none !important;
+                font-family: inherit !important;
+                font-size: 16px !important;
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+              }
+              input::placeholder {
+                color: #9ca3af !important;
+                opacity: 1 !important;
+              }
+            `
+            shadow.appendChild(style)
+            return shadow
+          }
+          return originalAttachShadow.call(this, init)
+        }
+        
+        ;(window as any).__shadowDOMPatched = true
+      }
+      
       const placeAutocomplete = new window.google.maps.places.PlaceAutocompleteElement({
         componentRestrictions: { country: 'us' },
         types: ['address']
       })
+
+      // Style the container element to match form inputs
+      placeAutocomplete.style.cssText = `
+        width: 100%;
+        border: ${hasError ? '1px solid #ef4444' : '1px solid #d1d5db'};
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 16px;
+        background-color: white;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        box-sizing: border-box;
+      `
+
+      // Add focus styles
+      const handleFocus = () => {
+        placeAutocomplete.style.borderColor = hasError ? '#ef4444' : '#3b82f6'
+        placeAutocomplete.style.boxShadow = hasError 
+          ? '0 0 0 3px rgba(239, 68, 68, 0.1)' 
+          : '0 0 0 3px rgba(59, 130, 246, 0.1)'
+      }
+
+      const handleBlur = () => {
+        placeAutocomplete.style.borderColor = hasError ? '#ef4444' : '#d1d5db'
+        placeAutocomplete.style.boxShadow = 'none'
+      }
+
+      placeAutocomplete.addEventListener('focus', handleFocus, true)
+      placeAutocomplete.addEventListener('blur', handleBlur, true)
+
+      // Set placeholder
+      if (placeholder) {
+        placeAutocomplete.setAttribute('placeholder', placeholder)
+      }
 
       // Listen for place selection
       placeAutocomplete.addEventListener('gmp-select', async (event: any) => {
@@ -104,7 +186,7 @@ export default function AddressAutocomplete({
   }
 
   return (
-    <div className="w-full">
+    <div className="relative">
       <div ref={autocompleteContainer} className="w-full" />
       <input
         type="hidden"
