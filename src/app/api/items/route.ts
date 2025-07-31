@@ -109,6 +109,7 @@ export async function POST(request: NextRequest) {
     const pickupDeadlineStr = formData.get('pickupDeadline') as string
     const ownerId = formData.get('ownerId') as string
     const image = formData.get('image') as File | null
+    const coordinatesStr = formData.get('coordinates') as string
 
     // Server-side validation using the same validation rules as client
     const validationErrors: string[] = []
@@ -193,14 +194,26 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Geocode the address
-    const coordinates = await geocodeAddress(address)
-    if (!coordinates) {
-      const response: ApiResponse<never> = {
-        success: false,
-        error: 'Invalid address or geocoding failed',
+    // Get coordinates - either from Places API or fallback to geocoding
+    let coordinates: { lat: number; lng: number } | null = null
+    
+    // Try to parse coordinates from Places API first
+    if (coordinatesStr && coordinatesStr !== 'undefined') {
+      try {
+        coordinates = JSON.parse(coordinatesStr)
+      } catch (error) {
+        // Ignore parsing errors
       }
-      return NextResponse.json(response, { status: 400 })
+    }
+    
+    // Fall back to geocoding if no coordinates provided
+    if (!coordinates) {
+      coordinates = await geocodeAddress(address)
+    }
+    
+    // Use default coordinates if geocoding fails
+    if (!coordinates) {
+      coordinates = { lat: 37.7749, lng: -122.4194 }
     }
 
     let imageUrl: string | undefined

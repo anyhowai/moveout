@@ -33,10 +33,7 @@ export const itemFormRules = {
   description: {
     maxLength: 1000
   },
-  address: {
-    required: true,
-    maxLength: 200
-  },
+  // Address validation removed - handled by Google Places API
   'contactInfo.name': {
     required: true,
     minLength: 2,

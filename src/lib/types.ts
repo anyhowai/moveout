@@ -53,6 +53,10 @@ export interface CreateItemRequest {
   urgency: UrgencyLevel
   image?: File
   address: string
+  coordinates?: {
+    lat: number
+    lng: number
+  }
   contactInfo: {
     name: string
     phone?: string

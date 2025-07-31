@@ -48,6 +48,10 @@ export default function PostItemPage() {
         formData.append('pickupDeadline', data.pickupDeadline.toISOString())
       }
 
+      if (data.coordinates) {
+        formData.append('coordinates', JSON.stringify(data.coordinates))
+      }
+
       const response = await fetch('/api/items', {
         method: 'POST',
         body: formData,

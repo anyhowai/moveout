@@ -29,6 +29,7 @@ export default function ItemForm({ onSubmit, isLoading = false }: ItemFormProps)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   const [addressValidated, setAddressValidated] = useState(false)
+  const [addressCoordinates, setAddressCoordinates] = useState<{ lat: number; lng: number } | null>(null)
   
   const validationTimeoutRef = useRef<NodeJS.Timeout>()
 
@@ -46,13 +47,18 @@ export default function ItemForm({ onSubmit, isLoading = false }: ItemFormProps)
   }, [])
 
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     // Validate all fields before submitting
     const allErrors: Record<string, string> = {}
     
-    // Validate form fields
+    // Custom address validation - must be selected from Google Places
+    if (!formData.address || !addressCoordinates) {
+      allErrors.address = 'Please select an address from the dropdown suggestions'
+    }
+
+    // Validate other form fields
     for (const [fieldName, rules] of Object.entries(itemFormRules)) {
       const value = fieldName.includes('contactInfo.') 
         ? formData.contactInfo[fieldName.split('.')[1] as keyof typeof formData.contactInfo] || ''
@@ -83,7 +89,10 @@ export default function ItemForm({ onSubmit, isLoading = false }: ItemFormProps)
     const submitData: CreateItemRequest = {
       ...formData,
       image: imageFile || undefined,
+      coordinates: addressCoordinates || undefined,
     }
+    
+    // Submit with coordinates from Google Places API
     
     onSubmit(submitData)
   }
@@ -121,13 +130,20 @@ export default function ItemForm({ onSubmit, isLoading = false }: ItemFormProps)
   const handleAddressChange = (address: string) => {
     setFormData(prev => ({ ...prev, address }))
     setAddressValidated(false)
-    validateFieldRealTime('address', address)
+    setAddressCoordinates(null)
+    // Remove real-time validation for address - only validate through Places API
   }
 
-  const handlePlaceSelect = (place: google.maps.places.PlaceResult) => {
-    if (place.formatted_address) {
+  const handlePlaceSelect = (place: any) => {
+    if (place.formattedAddress) {
       setAddressValidated(true)
       setValidationErrors(prev => ({ ...prev, address: '' }))
+      
+      // Capture coordinates from Google Places API
+      if (place.location) {
+        const coords = { lat: place.location.lat, lng: place.location.lng }
+        setAddressCoordinates(coords)
+      }
     }
   }
 
@@ -324,12 +340,15 @@ export default function ItemForm({ onSubmit, isLoading = false }: ItemFormProps)
           onPlaceSelect={handlePlaceSelect}
           required={true}
           hasError={!!validationErrors.address}
-          placeholder="123 Main St, City, State 12345"
+          placeholder="Start typing and select from dropdown..."
         />
-        {addressValidated && !validationErrors.address && (
+        <p className="mt-1 text-sm text-gray-500">
+          Type an address and select from the Google suggestions dropdown
+        </p>
+        {addressValidated && addressCoordinates && !validationErrors.address && (
           <p className="mt-1 text-sm text-green-600 flex items-center">
             <span className="mr-1">✓</span>
-            Address validated
+            Address selected from Google Places
           </p>
         )}
         <ErrorMessage fieldName="address" />
