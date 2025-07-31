@@ -270,7 +270,7 @@ export default function ItemForm({ onSubmit, isLoading = false }: ItemFormProps)
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
+        <div className="relative">
           <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
             Category *
           </label>
@@ -280,7 +280,8 @@ export default function ItemForm({ onSubmit, isLoading = false }: ItemFormProps)
             required
             value={formData.category}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+            className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 appearance-none"
+            style={{ backgroundColor: 'white', colorScheme: 'light' }}
           >
             <option value={ItemCategory.FURNITURE}>Furniture</option>
             <option value={ItemCategory.ELECTRONICS}>Electronics</option>
@@ -290,9 +291,14 @@ export default function ItemForm({ onSubmit, isLoading = false }: ItemFormProps)
             <option value={ItemCategory.DECORATION}>Decoration</option>
             <option value={ItemCategory.OTHER}>Other</option>
           </select>
+          <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none" style={{ top: '28px' }}>
+            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
         </div>
 
-        <div>
+        <div className="relative">
           <label htmlFor="urgency" className="block text-sm font-medium text-gray-700 mb-2">
             Pickup Urgency *
           </label>
@@ -302,12 +308,18 @@ export default function ItemForm({ onSubmit, isLoading = false }: ItemFormProps)
             required
             value={formData.urgency}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+            className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 appearance-none"
+            style={{ backgroundColor: 'white', colorScheme: 'light' }}
           >
             <option value={UrgencyLevel.LOW}>Low - Flexible timing</option>
             <option value={UrgencyLevel.MODERATE}>Moderate - Within a week</option>
             <option value={UrgencyLevel.URGENT}>Urgent - ASAP</option>
           </select>
+          <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none" style={{ top: '28px' }}>
+            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
         </div>
       </div>
 
