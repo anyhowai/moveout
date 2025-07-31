@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Script from 'next/script'
 import ItemForm from '@/components/items/item-form'
 import AuthModal from '@/components/auth/auth-modal'
 import { CreateItemRequest } from '@/lib/types'
@@ -12,6 +13,7 @@ export default function PostItemPage() {
   const { user, isLoading } = useAuth()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
+
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -78,6 +80,16 @@ export default function PostItemPage() {
 
   return (
     <>
+      <Script
+        src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places&loading=async`}
+        strategy="afterInteractive"
+        async
+        defer
+        onLoad={() => {
+          // Google Maps API loaded
+        }}
+      />
+      
       <div className="max-w-2xl mx-auto px-4 py-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Post an Item</h1>
@@ -106,12 +118,12 @@ export default function PostItemPage() {
             </button>
           </div>
         )}
-      </div>
 
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-      />
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+        />
+      </div>
     </>
   )
 }

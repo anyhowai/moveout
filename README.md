@@ -29,7 +29,7 @@ A Google Maps Platform Awards hackathon MVP where users can post furniture items
 - **Database**: Firebase Firestore
 - **Authentication**: Firebase Auth (Google OAuth + Email/Password)
 - **Storage**: Firebase Storage (images)
-- **Maps**: Google Maps JavaScript SDK + APIs (Geocoding, Directions)
+- **Maps**: Google Maps JavaScript API + Places API (autocomplete) + Geocoding API + Directions API
 - **Geolocation**: Browser Geolocation API with enhanced location services
 
 ## 🏃‍♂️ Quick Start
@@ -43,7 +43,8 @@ A Google Maps Platform Awards hackathon MVP where users can post furniture items
 ### Required APIs
 Enable these Google Cloud Platform APIs:
 - **Maps JavaScript API**: For interactive map display
-- **Geocoding API**: For address validation and coordinates
+- **Places API**: For address autocomplete and validation in forms
+- **Geocoding API**: For converting addresses to coordinates
 - **Directions API**: For navigation routing
 
 ### Setup
@@ -75,6 +76,7 @@ Enable these Google Cloud Platform APIs:
    - Create a new project in [Google Cloud Console](https://console.cloud.google.com/)
    - Enable these APIs in Google Cloud Console:
      - Maps JavaScript API
+     - Places API
      - Geocoding API
      - Directions API
    - Create API credentials and restrict by HTTP referrers for security
@@ -114,7 +116,7 @@ Enable these Google Cloud Platform APIs:
    - Category (furniture, electronics, clothing, etc.)
    - Urgency level (urgent, moderate, low priority)
    - Upload a photo (optional but recommended)
-   - Enter pickup address (with autocomplete)
+   - Enter pickup address (with Places API autocomplete for validation)
    - Add pickup deadline if needed
 3. Submit the form - your item will appear on the map instantly
 

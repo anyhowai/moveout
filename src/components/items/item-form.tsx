@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { CreateItemRequest, ItemCategory, UrgencyLevel } from '@/lib/types'
 import { geocodeAddress } from '@/lib/utils'
 import { validateField, validateImageFile, itemFormRules } from '@/lib/validation'
+import AddressAutocomplete from '@/components/ui/address-autocomplete'
 
 interface ItemFormProps {
   onSubmit: (data: CreateItemRequest) => void
@@ -27,15 +28,7 @@ export default function ItemForm({ onSubmit, isLoading = false }: ItemFormProps)
 
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
-  const [addressValidation, setAddressValidation] = useState<{
-    isValidating: boolean
-    isValid: boolean | null
-    message: string
-  }>({
-    isValidating: false,
-    isValid: null,
-    message: ''
-  })
+  const [addressValidated, setAddressValidated] = useState(false)
   
   const validationTimeoutRef = useRef<NodeJS.Timeout>()
 
@@ -52,44 +45,6 @@ export default function ItemForm({ onSubmit, isLoading = false }: ItemFormProps)
     }))
   }, [])
 
-  const validateAddress = useCallback(async (address: string) => {
-    if (!address.trim()) {
-      setAddressValidation({
-        isValidating: false,
-        isValid: null,
-        message: ''
-      })
-      return
-    }
-
-    setAddressValidation(prev => ({
-      ...prev,
-      isValidating: true
-    }))
-
-    try {
-      const coordinates = await geocodeAddress(address)
-      if (coordinates) {
-        setAddressValidation({
-          isValidating: false,
-          isValid: true,
-          message: '✓ Address verified'
-        })
-      } else {
-        setAddressValidation({
-          isValidating: false,
-          isValid: false,
-          message: '✗ Address not found. Please check spelling and try again.'
-        })
-      }
-    } catch (error) {
-      setAddressValidation({
-        isValidating: false,
-        isValid: false,
-        message: '✗ Unable to verify address. Please check your connection.'
-      })
-    }
-  }, [])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -117,10 +72,6 @@ export default function ItemForm({ onSubmit, isLoading = false }: ItemFormProps)
       }
     }
     
-    // Check address validation
-    if (addressValidation.isValid === false) {
-      allErrors.address = 'Please enter a valid address'
-    }
     
     setValidationErrors(allErrors)
     
@@ -164,27 +115,19 @@ export default function ItemForm({ onSubmit, isLoading = false }: ItemFormProps)
       // Validate regular field
       validateFieldRealTime(name, value)
       
-      // Special handling for address validation
-      if (name === 'address') {
-        // Clear existing timeout
-        if (validationTimeoutRef.current) {
-          clearTimeout(validationTimeoutRef.current)
-        }
-        
-        // Reset address validation state immediately
-        setAddressValidation({
-          isValidating: false,
-          isValid: null,
-          message: ''
-        })
-        
-        // Set new timeout for address validation (wait 1 second after user stops typing)
-        if (value.trim()) {
-          validationTimeoutRef.current = setTimeout(() => {
-            validateAddress(value)
-          }, 1000)
-        }
-      }
+    }
+  }
+
+  const handleAddressChange = (address: string) => {
+    setFormData(prev => ({ ...prev, address }))
+    setAddressValidated(false)
+    validateFieldRealTime('address', address)
+  }
+
+  const handlePlaceSelect = (place: google.maps.places.PlaceResult) => {
+    if (place.formatted_address) {
+      setAddressValidated(true)
+      setValidationErrors(prev => ({ ...prev, address: '' }))
     }
   }
 
@@ -375,50 +318,18 @@ export default function ItemForm({ onSubmit, isLoading = false }: ItemFormProps)
         <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
           Pickup Address *
         </label>
-        <div className="relative">
-          <input
-            type="text"
-            id="address"
-            name="address"
-            required
-            value={formData.address}
-            onChange={handleInputChange}
-            className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 text-gray-900 ${
-              validationErrors.address
-                ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                : addressValidation.isValid === true
-                ? 'border-green-300 focus:ring-green-500 focus:border-green-500'
-                : addressValidation.isValid === false
-                ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-            }`}
-            placeholder="123 Main St, City, State 12345"
-          />
-          {addressValidation.isValidating && (
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-            </div>
-          )}
-          {addressValidation.isValid === true && (
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-              <span className="text-green-500">✓</span>
-            </div>
-          )}
-          {addressValidation.isValid === false && (
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-              <span className="text-red-500">✗</span>
-            </div>
-          )}
-        </div>
-        {addressValidation.message && (
-          <p className={`mt-1 text-sm ${
-            addressValidation.isValid === true
-              ? 'text-green-600'
-              : addressValidation.isValid === false
-              ? 'text-red-600'
-              : 'text-gray-600'
-          }`}>
-            {addressValidation.message}
+        <AddressAutocomplete
+          value={formData.address}
+          onChange={handleAddressChange}
+          onPlaceSelect={handlePlaceSelect}
+          required={true}
+          hasError={!!validationErrors.address}
+          placeholder="123 Main St, City, State 12345"
+        />
+        {addressValidated && !validationErrors.address && (
+          <p className="mt-1 text-sm text-green-600 flex items-center">
+            <span className="mr-1">✓</span>
+            Address validated
           </p>
         )}
         <ErrorMessage fieldName="address" />
@@ -502,7 +413,7 @@ export default function ItemForm({ onSubmit, isLoading = false }: ItemFormProps)
         </button>
         <button
           type="submit"
-          disabled={isLoading || addressValidation.isValid === false}
+          disabled={isLoading}
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Posting...' : 'Post Item'}

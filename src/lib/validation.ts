@@ -35,7 +35,6 @@ export const itemFormRules = {
   },
   address: {
     required: true,
-    minLength: 10,
     maxLength: 200
   },
   'contactInfo.name': {
