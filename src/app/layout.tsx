@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
 import ErrorBoundary from '@/components/ui/error-boundary'
 import OfflineBanner from '@/components/ui/offline-banner'
 import { AuthProvider } from '@/contexts/auth-context'
@@ -60,6 +61,7 @@ export default function RootLayout({
             </div>
           </FavoritesProvider>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   )
