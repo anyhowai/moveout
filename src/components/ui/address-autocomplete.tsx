@@ -97,8 +97,8 @@ export default function AddressAutocomplete({
         types: ['address']
       })
 
-      // Set placeholder after creation
-      placeAutocomplete.placeholder = placeholder
+      // Set placeholder via setAttribute (DOM element approach)
+      placeAutocomplete.setAttribute('placeholder', placeholder)
 
       // Style the container element
       placeAutocomplete.style.cssText = `
