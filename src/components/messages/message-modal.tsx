@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/contexts/auth-context'
-import { Item, ItemStatus } from '@/lib/types'
+import { Item } from '@/lib/types'
 
 interface MessageModalProps {
   isOpen: boolean
@@ -41,7 +41,6 @@ export default function MessageModal({ isOpen, onClose, item }: MessageModalProp
       })
 
       const responseData = await messageResponse.json()
-      console.log('Message response:', responseData)
 
       if (!messageResponse.ok) {
         throw new Error(`Failed to send message: ${responseData.error || messageResponse.statusText}`)
