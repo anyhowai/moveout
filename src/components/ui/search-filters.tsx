@@ -78,11 +78,12 @@ export default function SearchFilters({
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-          <div className="min-w-0 sm:w-48">
+          <div className="min-w-0 sm:w-48 relative">
             <select
               value={selectedCategory}
               onChange={(e) => onCategoryChange(e.target.value as ItemCategory | 'all')}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 h-10"
+              className="block w-full px-3 py-2 pr-8 border border-gray-300 rounded-md bg-white text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 h-10 appearance-none"
+              style={{ backgroundColor: 'white', colorScheme: 'light' }}
             >
               {categories.map((category) => (
                 <option key={category.value} value={category.value}>
@@ -90,13 +91,19 @@ export default function SearchFilters({
                 </option>
               ))}
             </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
           </div>
 
-          <div className="min-w-0 sm:w-48">
+          <div className="min-w-0 sm:w-48 relative">
             <select
               value={selectedUrgency}
               onChange={(e) => onUrgencyChange(e.target.value as UrgencyLevel | 'all')}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 h-10"
+              className="block w-full px-3 py-2 pr-8 border border-gray-300 rounded-md bg-white text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 h-10 appearance-none"
+              style={{ backgroundColor: 'white', colorScheme: 'light' }}
             >
               {urgencyLevels.map((urgency) => (
                 <option key={urgency.value} value={urgency.value}>
@@ -104,6 +111,11 @@ export default function SearchFilters({
                 </option>
               ))}
             </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
           </div>
 
           {showDistanceFilter && onDistanceChange && onLocationChange && (
